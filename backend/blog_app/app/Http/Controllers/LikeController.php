@@ -34,6 +34,15 @@ class LikeController extends Controller
                 'post_id' => $post->id,
                 'user_id' => $userId,
             ]);
+
+            // Notify post owner
+            if ($post->user_id !== $userId) {
+                $post->user->notify(new \App\Notifications\PushNotification(
+                    'New Like',
+                    $request->user()->name . ' liked your post.'
+                ));
+            }
+
             return $this->formatResponse(true, 'Post liked', 201);
         }
     }

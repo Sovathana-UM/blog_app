@@ -64,6 +64,14 @@ class CommentController extends Controller
             // Load user relationship to return with comment
             $comment->load('user');
 
+            // Notify post owner
+            if ($post->user_id !== $request->user()->id) {
+                $post->user->notify(new \App\Notifications\PushNotification(
+                    'New Comment',
+                    $request->user()->name . ' commented on your post.'
+                ));
+            }
+
             return $this->formatResponse(true, 'Comment added successfully', 201, $comment);
         } catch (ValidationException $e) {
             return $this->formatResponse(false, 'Validation error', 422, $e->errors());
@@ -95,5 +103,50 @@ class CommentController extends Controller
         $comment->delete();
 
         return $this->formatResponse(true, 'Comment deleted successfully', 200);
+    }
+
+    #[OA\Put(path: "/comments/{id}", summary: "Update a comment", tags: ["Comments"], security: [["bearerAuth" => []]])]
+    #[OA\Parameter(name: "id", in: "path", required: true, schema: new OA\Schema(type: "string"))]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            required: ["comment"],
+            properties: [
+                new OA\Property(property: "comment", type: "string", example: "Updated comment text")
+            ]
+        )
+    )]
+    #[OA\Response(response: 200, description: "Comment updated successfully")]
+    #[OA\Response(response: 403, description: "Unauthorized")]
+    #[OA\Response(response: 404, description: "Comment not found")]
+    public function update(Request $request, $id)
+    {
+        try {
+            $validatedData = $request->validate([
+                'comment' => 'required|string',
+            ]);
+
+            $comment = Comment::find($id);
+
+            if (!$comment) {
+                return $this->formatResponse(false, 'Comment not found', 404);
+            }
+
+            if ($comment->user_id !== $request->user()->id) {
+                return $this->formatResponse(false, 'Unauthorized to update this comment', 403);
+            }
+
+            $comment->content = $validatedData['comment'];
+            $comment->save();
+
+            // Load user relationship
+            $comment->load('user');
+
+            return $this->formatResponse(true, 'Comment updated successfully', 200, $comment);
+        } catch (ValidationException $e) {
+            return $this->formatResponse(false, 'Validation error', 422, $e->errors());
+        } catch (\Exception $e) {
+            return $this->formatResponse(false, 'Failed to update comment', 500, ['error' => $e->getMessage()]);
+        }
     }
 }

@@ -169,4 +169,38 @@ class PostController extends Controller
 
         return $this->formatResponse(true, 'Post deleted successfully', 200);
     }
+
+    #[OA\Get(path: "/my-posts", summary: "Get current user's posts", tags: ["Posts"], security: [["bearerAuth" => []]])]
+    #[OA\Response(response: 200, description: "List of user's posts")]
+    public function myPosts(Request $request)
+    {
+        $posts = Post::with(['user', 'category', 'comments.user'])
+            ->withCount(['comments', 'likes'])
+            ->where('user_id', $request->user()->id)
+            ->latest()
+            ->get();
+            
+        return $this->formatResponse(true, 'My posts retrieved successfully', 200, $posts);
+    }
+
+    #[OA\Get(path: "/search/posts", summary: "Search posts", tags: ["Posts"], security: [["bearerAuth" => []]])]
+    #[OA\Parameter(name: "q", in: "query", required: true, schema: new OA\Schema(type: "string"))]
+    #[OA\Response(response: 200, description: "List of posts matching search query")]
+    public function search(Request $request)
+    {
+        $query = $request->query('q');
+
+        if (!$query) {
+            return $this->formatResponse(false, 'Search query parameter "q" is required', 400);
+        }
+
+        $posts = Post::with(['user', 'category', 'comments.user'])
+            ->withCount(['comments', 'likes'])
+            ->where('title', 'like', "%{$query}%")
+            ->orWhere('content', 'like', "%{$query}%")
+            ->latest()
+            ->get();
+            
+        return $this->formatResponse(true, 'Search results retrieved successfully', 200, $posts);
+    }
 }

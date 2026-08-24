@@ -37,4 +37,9 @@ class Post extends Model
     {
         return $this->belongsTo(Category::class);
     }
+
+    public function savedByUsers()
+    {
+        return $this->belongsToMany(User::class, 'saved_posts')->withTimestamps();
+    }
 }

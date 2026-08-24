@@ -249,6 +249,20 @@
                 ]
             }
         },
+        "/categories": {
+            "get": {
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "Get all categories",
+                "operationId": "ead5fb1cf2a7453acb2e37928a1b1eaf",
+                "responses": {
+                    "200": {
+                        "description": "List of categories"
+                    }
+                }
+            }
+        },
         "/posts/{id}/comments": {
             "get": {
                 "tags": [
@@ -331,6 +345,58 @@
             }
         },
         "/comments/{id}": {
+            "put": {
+                "tags": [
+                    "Comments"
+                ],
+                "summary": "Update a comment",
+                "operationId": "e6903ffe88ec53d1900c913ecab39ab0",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "comment"
+                                ],
+                                "properties": {
+                                    "comment": {
+                                        "type": "string",
+                                        "example": "Updated comment text"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Comment updated successfully"
+                    },
+                    "403": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Comment not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
             "delete": {
                 "tags": [
                     "Comments"
@@ -388,6 +454,73 @@
                     },
                     "404": {
                         "description": "Post not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/notifications": {
+            "get": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Get all notifications",
+                "operationId": "0f031f66cd8c52bf73e89fb2d050ad83",
+                "responses": {
+                    "200": {
+                        "description": "List of notifications"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/notifications/{id}/read": {
+            "post": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Mark a notification as read",
+                "operationId": "e8ec77e64be528452b6b9ee62d832d70",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Notification marked as read"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/notifications/read-all": {
+            "post": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Mark all notifications as read",
+                "operationId": "e873443612632a319ae0f88db368dd7a",
+                "responses": {
+                    "200": {
+                        "description": "All notifications marked as read"
                     }
                 },
                 "security": [
@@ -590,6 +723,135 @@
                     },
                     "403": {
                         "description": "Unauthorized to delete this post"
+                    },
+                    "404": {
+                        "description": "Post not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/my-posts": {
+            "get": {
+                "tags": [
+                    "Posts"
+                ],
+                "summary": "Get current user's posts",
+                "operationId": "ce30bb9c51bd9abe6e8c04c72dfe1d6a",
+                "responses": {
+                    "200": {
+                        "description": "List of user's posts"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/search/posts": {
+            "get": {
+                "tags": [
+                    "Posts"
+                ],
+                "summary": "Search posts",
+                "operationId": "8fd9644faaf7916225544503ecac6a68",
+                "parameters": [
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of posts matching search query"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/saved-posts": {
+            "get": {
+                "tags": [
+                    "Saved Posts"
+                ],
+                "summary": "Get all saved posts for the current user",
+                "operationId": "1a425b4e608fa49c983f376c8e176b82",
+                "responses": {
+                    "200": {
+                        "description": "List of saved posts"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/posts/{id}/save": {
+            "post": {
+                "tags": [
+                    "Saved Posts"
+                ],
+                "summary": "Save a post",
+                "operationId": "4b891fa020e7683db04a686e47a3280d",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Post saved successfully"
+                    },
+                    "404": {
+                        "description": "Post not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Saved Posts"
+                ],
+                "summary": "Unsave a post",
+                "operationId": "a14a1499c5f44cf61bb2a5906a22f6a1",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Post unsaved successfully"
                     },
                     "404": {
                         "description": "Post not found"
@@ -824,6 +1086,57 @@
                     }
                 ]
             }
+        },
+        "/change-password": {
+            "put": {
+                "tags": [
+                    "User"
+                ],
+                "summary": "Change password",
+                "operationId": "454520d8a355bf09aaf9753f399eb793",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "current_password",
+                                    "new_password",
+                                    "new_password_confirmation"
+                                ],
+                                "properties": {
+                                    "current_password": {
+                                        "type": "string",
+                                        "example": "oldpass123"
+                                    },
+                                    "new_password": {
+                                        "type": "string",
+                                        "example": "newpass123"
+                                    },
+                                    "new_password_confirmation": {
+                                        "type": "string",
+                                        "example": "newpass123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Password changed successfully"
+                    },
+                    "422": {
+                        "description": "Validation error or incorrect current password"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
         }
     },
     "components": {
@@ -840,6 +1153,10 @@
             "description": "Authentication"
         },
         {
+            "name": "Categories",
+            "description": "Categories"
+        },
+        {
             "name": "Comments",
             "description": "Comments"
         },
@@ -848,8 +1165,16 @@
             "description": "Likes"
         },
         {
+            "name": "Notifications",
+            "description": "Notifications"
+        },
+        {
             "name": "Posts",
             "description": "Posts"
+        },
+        {
+            "name": "Saved Posts",
+            "description": "Saved Posts"
         },
         {
             "name": "User",

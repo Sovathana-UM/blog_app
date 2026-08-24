@@ -165,4 +165,67 @@ class UserController extends Controller
             return $this->formatResponse(false, 'An error occurred while updating email.', 500, ['error' => $e->getMessage()]);
         }
     }
+
+    #[OA\Put(path: "/change-password", summary: "Change password", tags: ["User"], security: [["bearerAuth" => []]])]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            required: ["current_password", "new_password", "new_password_confirmation"],
+            properties: [
+                new OA\Property(property: "current_password", type: "string", example: "oldpass123"),
+                new OA\Property(property: "new_password", type: "string", example: "newpass123"),
+                new OA\Property(property: "new_password_confirmation", type: "string", example: "newpass123")
+            ]
+        )
+    )]
+    #[OA\Response(response: 200, description: "Password changed successfully")]
+    #[OA\Response(response: 422, description: "Validation error or incorrect current password")]
+    public function changePassword(Request $request)
+    {
+        try {
+            $request->validate([
+                'current_password' => 'required',
+                'new_password' => 'required|min:8|confirmed',
+            ]);
+
+            $user = $request->user();
+
+            if (!\Illuminate\Support\Facades\Hash::check($request->current_password, $user->password)) {
+                return $this->formatResponse(false, 'Current password is incorrect', 422);
+            }
+
+            $user->password = \Illuminate\Support\Facades\Hash::make($request->new_password);
+            $user->save();
+
+            return $this->formatResponse(true, 'Password changed successfully', 200);
+        } catch (ValidationException $e) {
+            return $this->formatResponse(false, 'Validation error', 422, $e->errors());
+        } catch (\Exception $e) {
+            return $this->formatResponse(false, 'An error occurred.', 500, ['error' => $e->getMessage()]);
+        }
+    }
+
+    #[OA\Post(path: "/user/fcm-token", summary: "Update FCM token for push notifications", tags: ["User"], security: [["bearerAuth" => []]])]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            required: ["token"],
+            properties: [
+                new OA\Property(property: "token", type: "string", example: "eFk_m928...")
+            ]
+        )
+    )]
+    #[OA\Response(response: 200, description: "FCM token updated successfully")]
+    public function updateFcmToken(Request $request)
+    {
+        $request->validate([
+            'token' => 'required|string',
+        ]);
+
+        $user = $request->user();
+        $user->fcm_token = $request->token;
+        $user->save();
+
+        return $this->formatResponse(true, 'FCM token updated successfully', 200);
+    }
 }

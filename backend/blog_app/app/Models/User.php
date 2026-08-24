@@ -30,6 +30,7 @@ class User extends Authenticatable
         'profile_picture',
         'bio',
         'location',
+        'fcm_token',
     ];
 
     /**
@@ -73,5 +74,10 @@ class User extends Authenticatable
     public function notifications()
     {
         return $this->hasMany(Notification::class);
+    }
+
+    public function savedPosts()
+    {
+        return $this->belongsToMany(Post::class, 'saved_posts')->withTimestamps();
     }
 }
