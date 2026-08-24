@@ -13,7 +13,9 @@ class Post extends Model
     protected $fillable = [
         'user_id',
         'title',
+        'content',
         'image',
+        'category_id',
     ];
 
     public function user()
@@ -29,5 +31,10 @@ class Post extends Model
     public function likes()
     {
         return $this->hasMany(Like::class);
+    }
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
     }
 }

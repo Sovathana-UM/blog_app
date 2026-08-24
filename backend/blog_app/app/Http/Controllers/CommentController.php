@@ -27,28 +27,29 @@ class CommentController extends Controller
         return $this->formatResponse(true, 'Comments retrieved successfully', 200, $comments);
     }
 
-    #[OA\Post(path: "/posts/{id}/comments", summary: "Add a comment to a post", tags: ["Comments"], security: [["bearerAuth" => []]])]
-    #[OA\Parameter(name: "id", in: "path", required: true, schema: new OA\Schema(type: "string"))]
+    #[OA\Post(path: "/comments", summary: "Add a comment", tags: ["Comments"], security: [["bearerAuth" => []]])]
     #[OA\RequestBody(
         required: true,
         content: new OA\JsonContent(
-            required: ["content"],
+            required: ["post_id", "comment"],
             properties: [
-                new OA\Property(property: "content", type: "string", example: "Great post!")
+                new OA\Property(property: "post_id", type: "string", example: "uuid-1234"),
+                new OA\Property(property: "comment", type: "string", example: "Great post!")
             ]
         )
     )]
     #[OA\Response(response: 201, description: "Comment added successfully")]
     #[OA\Response(response: 404, description: "Post not found")]
     #[OA\Response(response: 422, description: "Validation error")]
-    public function store(Request $request, $id)
+    public function store(Request $request)
     {
         try {
             $validatedData = $request->validate([
-                'content' => 'required|string',
+                'post_id' => 'required|exists:posts,id',
+                'comment' => 'required|string',
             ]);
 
-            $post = Post::find($id);
+            $post = Post::find($validatedData['post_id']);
 
             if (!$post) {
                 return $this->formatResponse(false, 'Post not found', 404);
@@ -57,7 +58,7 @@ class CommentController extends Controller
             $comment = Comment::create([
                 'post_id' => $post->id,
                 'user_id' => $request->user()->id,
-                'content' => $validatedData['content'],
+                'content' => $validatedData['comment'],
             ]);
 
             // Load user relationship to return with comment

@@ -25,4 +25,34 @@ class PostRepository {
       throw Exception(e.toString());
     }
   }
+
+  Future<bool> createPost({required String title, required String imagePath}) async {
+    try {
+      String fileName = imagePath.split('/').last;
+      if (!fileName.contains('.')) {
+        fileName = '$fileName.jpg';
+      }
+
+      final formData = FormData.fromMap({
+        if (title.isNotEmpty) 'title': title,
+        'image': await MultipartFile.fromFile(imagePath, filename: fileName),
+      });
+
+      final response = await _dio.post(
+        '/posts',
+        data: formData,
+      );
+
+      return response.statusCode == 201;
+    } on DioException catch (e) {
+      debugPrint('PostRepository createPost DioException: ${e.message}');
+      if (e.response != null) {
+        debugPrint('PostRepository createPost error data: ${e.response?.data}');
+      }
+      return false;
+    } catch (e) {
+      debugPrint('PostRepository createPost error: $e');
+      return false;
+    }
+  }
 }

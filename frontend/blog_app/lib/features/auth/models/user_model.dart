@@ -6,6 +6,9 @@ class UserModel {
   final String? profilePicture;
   final String? bio;
   final String? location;
+  final String? gender;
+  final String? dateOfBirth;
+  final String? createdAt;
 
   UserModel({
     required this.id,
@@ -15,6 +18,9 @@ class UserModel {
     this.profilePicture,
     this.bio,
     this.location,
+    this.gender,
+    this.dateOfBirth,
+    this.createdAt,
   });
 
   String get fullName => '$firstName $lastName';
@@ -28,6 +34,9 @@ class UserModel {
       profilePicture: json['profile_picture'],
       bio: json['bio'],
       location: json['location'],
+      gender: json['gender'],
+      dateOfBirth: json['date_of_birth'],
+      createdAt: json['created_at'],
     );
   }
 
@@ -40,6 +49,9 @@ class UserModel {
       'profile_picture': profilePicture,
       'bio': bio,
       'location': location,
+      'gender': gender,
+      'date_of_birth': dateOfBirth,
+      'created_at': createdAt,
     };
   }
 }

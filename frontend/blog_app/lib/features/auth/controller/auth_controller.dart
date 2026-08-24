@@ -64,6 +64,17 @@ class AuthController extends GetxController {
     }
   }
 
+  Future<void> refreshCurrentUser() async {
+    try {
+      final user = await _authProvider.getCurrentUser();
+      if (user != null) {
+        currentUser.value = user;
+      }
+    } catch (e) {
+      debugPrint('AuthController: Error refreshing user: $e');
+    }
+  }
+
   Future<void> login() async {
     debugPrint('AuthController: login() called.');
     if (loginEmailController.text.isEmpty || loginPasswordController.text.isEmpty) {

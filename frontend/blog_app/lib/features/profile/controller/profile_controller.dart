@@ -26,6 +26,7 @@ class ProfileController extends GetxController {
     hasError.value = false;
     
     try {
+      await authController.refreshCurrentUser();
       if (currentUser != null) {
         await getUserPosts();
       }

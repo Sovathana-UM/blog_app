@@ -35,6 +35,22 @@ class PostController extends Controller
         return $this->formatResponse(true, 'Posts retrieved successfully', 200, $posts);
     }
 
+    #[OA\Get(path: "/posts/{id}", summary: "Get a single post", tags: ["Posts"], security: [["bearerAuth" => []]])]
+    #[OA\Parameter(name: "id", in: "path", required: true, schema: new OA\Schema(type: "string"))]
+    #[OA\Response(response: 200, description: "Post retrieved successfully")]
+    #[OA\Response(response: 404, description: "Post not found")]
+    public function show($id)
+    {
+        $post = Post::with(['user', 'category', 'comments.user'])->withCount(['comments', 'likes'])->find($id);
+
+        if (!$post) {
+            return $this->formatResponse(false, 'Post not found', 404);
+        }
+
+        return $this->formatResponse(true, 'Post retrieved successfully', 200, $post);
+    }
+
+
     #[OA\Post(path: "/posts", summary: "Create a new post", tags: ["Posts"], security: [["bearerAuth" => []]])]
     #[OA\RequestBody(
         required: true,
@@ -56,14 +72,21 @@ class PostController extends Controller
         try {
             $validatedData = $request->validate([
                 'title' => 'nullable|string|max:255',
-                'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
+                'content' => 'nullable|string',
+                'category_id' => 'nullable|exists:categories,id',
+                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
             ]);
 
-            $imagePath = $request->file('image')->store('posts', 'public');
+            $imagePath = null;
+            if ($request->hasFile('image')) {
+                $imagePath = $request->file('image')->store('posts', 'public');
+            }
 
             $post = Post::create([
                 'user_id' => $request->user()->id,
                 'title' => $validatedData['title'] ?? null,
+                'content' => $validatedData['content'] ?? null,
+                'category_id' => $validatedData['category_id'] ?? null,
                 'image' => $imagePath,
             ]);
 
@@ -72,6 +95,52 @@ class PostController extends Controller
             return $this->formatResponse(false, 'Validation error', 422, $e->errors());
         } catch (\Exception $e) {
             return $this->formatResponse(false, 'Failed to create post', 500, ['error' => $e->getMessage()]);
+        }
+    }
+
+    #[OA\Put(path: "/posts/{id}", summary: "Update an existing post", tags: ["Posts"], security: [["bearerAuth" => []]])]
+    #[OA\Parameter(name: "id", in: "path", required: true, schema: new OA\Schema(type: "string"))]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: "title", type: "string", example: "Updated Title"),
+                new OA\Property(property: "content", type: "string", example: "Updated Content"),
+                new OA\Property(property: "category_id", type: "integer", example: 1)
+            ]
+        )
+    )]
+    #[OA\Response(response: 200, description: "Post updated successfully")]
+    public function update(Request $request, $id)
+    {
+        try {
+            $validatedData = $request->validate([
+                'title' => 'nullable|string|max:255',
+                'content' => 'nullable|string',
+                'category_id' => 'nullable|exists:categories,id',
+            ]);
+
+            $post = Post::find($id);
+
+            if (!$post) {
+                return $this->formatResponse(false, 'Post not found', 404);
+            }
+
+            if ($post->user_id !== $request->user()->id) {
+                return $this->formatResponse(false, 'Unauthorized to update this post', 403);
+            }
+
+            if (isset($validatedData['title'])) $post->title = $validatedData['title'];
+            if (isset($validatedData['content'])) $post->content = $validatedData['content'];
+            if (isset($validatedData['category_id'])) $post->category_id = $validatedData['category_id'];
+            
+            $post->save();
+
+            return $this->formatResponse(true, 'Post updated successfully', 200, $post);
+        } catch (ValidationException $e) {
+            return $this->formatResponse(false, 'Validation error', 422, $e->errors());
+        } catch (\Exception $e) {
+            return $this->formatResponse(false, 'Failed to update post', 500, ['error' => $e->getMessage()]);
         }
     }
 

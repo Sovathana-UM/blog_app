@@ -47,7 +47,7 @@ class ProfileHeader extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '@${user.firstName.toLowerCase()}',
+                      user.email,
                       style: TextStyle(
                         color: Colors.grey[600],
                         fontSize: 14,
@@ -80,27 +80,52 @@ class ProfileHeader extends StatelessWidget {
             ),
             const SizedBox(height: 8),
           ],
-          Row(
+          Wrap(
+            spacing: 16,
+            runSpacing: 8,
             children: [
-              if (user.location != null && user.location!.isNotEmpty) ...[
-                Icon(Icons.location_on_outlined, size: 16, color: Colors.grey[600]),
-                const SizedBox(width: 4),
-                Text(
-                  user.location!,
-                  style: TextStyle(color: Colors.grey[600], fontSize: 13),
+              if (user.location != null && user.location!.isNotEmpty)
+                _buildInfoChip(Icons.location_on_outlined, user.location!),
+              
+              if (user.gender != null && user.gender!.isNotEmpty)
+                _buildInfoChip(
+                  user.gender!.toLowerCase() == 'female' ? Icons.female : Icons.male, 
+                  user.gender!
                 ),
-                const SizedBox(width: 16),
-              ],
-              Icon(Icons.calendar_today_outlined, size: 16, color: Colors.grey[600]),
-              const SizedBox(width: 4),
-              Text(
-                'Joined 2024', // Mocked since we don't fetch created_at currently
-                style: TextStyle(color: Colors.grey[600], fontSize: 13),
-              ),
+
+              if (user.dateOfBirth != null && user.dateOfBirth!.isNotEmpty)
+                _buildInfoChip(Icons.cake_outlined, _formatDate(user.dateOfBirth)),
+
+              _buildInfoChip(Icons.calendar_today_outlined, 'Joined ${_formatDate(user.createdAt)}'),
             ],
           )
         ],
       ),
     );
+  }
+
+  Widget _buildInfoChip(IconData icon, String text) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 16, color: Colors.grey[600]),
+        const SizedBox(width: 4),
+        Text(
+          text,
+          style: TextStyle(color: Colors.grey[600], fontSize: 13),
+        ),
+      ],
+    );
+  }
+
+  String _formatDate(String? dateStr) {
+    if (dateStr == null || dateStr.isEmpty) return 'Unknown';
+    try {
+      final DateTime date = DateTime.parse(dateStr);
+      final monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      return '${monthNames[date.month - 1]} ${date.year}';
+    } catch (_) {
+      return dateStr;
+    }
   }
 }

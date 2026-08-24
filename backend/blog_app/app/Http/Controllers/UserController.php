@@ -30,37 +30,21 @@ class UserController extends Controller
         return $this->formatResponse(true, 'User retrieved successfully', 200, $request->user());
     }
 
-    #[OA\Post(path: "/user/update", summary: "Update user profile", tags: ["User"], security: [["bearerAuth" => []]])]
+    #[OA\Put(path: "/profile", summary: "Update user profile", tags: ["User"], security: [["bearerAuth" => []]])]
     #[OA\RequestBody(
         required: true,
-        content: new OA\MediaType(
-            mediaType: "multipart/form-data",
-            schema: new OA\Schema(
-                properties: [
-                    new OA\Property(property: "first_name", type: "string", example: "John"),
-                    new OA\Property(property: "last_name", type: "string", example: "Doe"),
-                    new OA\Property(property: "gender", type: "string", enum: ["male", "female", "other"], example: "male"),
-                    new OA\Property(property: "date_of_birth", type: "string", format: "date", example: "1990-01-01"),
-                    new OA\Property(property: "profile_picture", type: "string", format: "binary")
-                ]
-            )
-        )
-    )]
-    #[OA\Response(
-        response: 200, 
-        description: "Profile updated successfully",
         content: new OA\JsonContent(
             properties: [
-                new OA\Property(property: "success", type: "boolean", example: true),
-                new OA\Property(property: "message", type: "string", example: "Profile updated successfully"),
-                new OA\Property(property: "statusCode", type: "integer", example: 200),
-                new OA\Property(property: "data", type: "object")
+                new OA\Property(property: "first_name", type: "string", example: "John"),
+                new OA\Property(property: "last_name", type: "string", example: "Doe"),
+                new OA\Property(property: "gender", type: "string", enum: ["male", "female", "other"], example: "male"),
+                new OA\Property(property: "date_of_birth", type: "string", format: "date", example: "1990-01-01"),
+                new OA\Property(property: "bio", type: "string", example: "Flutter Developer"),
+                new OA\Property(property: "location", type: "string", example: "Cambodia")
             ]
         )
     )]
-    #[OA\Response(response: 401, description: "Unauthenticated")]
-    #[OA\Response(response: 422, description: "Validation Error")]
-    #[OA\Response(response: 500, description: "Server Error")]
+    #[OA\Response(response: 200, description: "Profile updated successfully")]
     public function updateProfile(Request $request)
     {
         try {
@@ -69,39 +53,18 @@ class UserController extends Controller
                 'last_name' => 'nullable|string|max:255',
                 'gender' => 'nullable|in:male,female,other',
                 'date_of_birth' => 'nullable|date',
-                'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'bio' => 'nullable|string',
+                'location' => 'nullable|string',
             ]);
 
             $user = $request->user();
 
-            if (isset($validatedData['first_name'])) {
-                $user->first_name = $validatedData['first_name'];
-            }
-            if (isset($validatedData['last_name'])) {
-                $user->last_name = $validatedData['last_name'];
-            }
-            if (isset($validatedData['gender'])) {
-                $user->gender = $validatedData['gender'];
-            }
-            if (isset($validatedData['date_of_birth'])) {
-                $user->date_of_birth = $validatedData['date_of_birth'];
-            }
-            if ($request->has('bio')) {
-                $user->bio = $request->input('bio');
-            }
-            if ($request->has('location')) {
-                $user->location = $request->input('location');
-            }
-
-            if ($request->hasFile('profile_picture')) {
-                // Delete old picture if exists
-                if ($user->profile_picture && Storage::disk('public')->exists($user->profile_picture)) {
-                    Storage::disk('public')->delete($user->profile_picture);
-                }
-
-                $profilePicturePath = $request->file('profile_picture')->store('profile_pictures', 'public');
-                $user->profile_picture = $profilePicturePath;
-            }
+            if (isset($validatedData['first_name'])) $user->first_name = $validatedData['first_name'];
+            if (isset($validatedData['last_name'])) $user->last_name = $validatedData['last_name'];
+            if (isset($validatedData['gender'])) $user->gender = $validatedData['gender'];
+            if (isset($validatedData['date_of_birth'])) $user->date_of_birth = $validatedData['date_of_birth'];
+            if (isset($validatedData['bio'])) $user->bio = $validatedData['bio'];
+            if (isset($validatedData['location'])) $user->location = $validatedData['location'];
             
             $user->save();
 
@@ -110,6 +73,45 @@ class UserController extends Controller
             return $this->formatResponse(false, 'Validation error', 422, $e->errors());
         } catch (\Exception $e) {
             return $this->formatResponse(false, 'An error occurred during update.', 500, ['error' => $e->getMessage()]);
+        }
+    }
+
+    #[OA\Post(path: "/profile/avatar", summary: "Upload profile avatar", tags: ["User"], security: [["bearerAuth" => []]])]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\MediaType(
+            mediaType: "multipart/form-data",
+            schema: new OA\Schema(
+                required: ["avatar"],
+                properties: [
+                    new OA\Property(property: "avatar", type: "string", format: "binary")
+                ]
+            )
+        )
+    )]
+    #[OA\Response(response: 200, description: "Avatar uploaded successfully")]
+    public function uploadAvatar(Request $request)
+    {
+        try {
+            $request->validate([
+                'avatar' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
+            ]);
+
+            $user = $request->user();
+
+            if ($user->profile_picture && Storage::disk('public')->exists($user->profile_picture)) {
+                Storage::disk('public')->delete($user->profile_picture);
+            }
+
+            $path = $request->file('avatar')->store('profile_pictures', 'public');
+            $user->profile_picture = $path;
+            $user->save();
+
+            return $this->formatResponse(true, 'Avatar uploaded successfully', 200, $user);
+        } catch (ValidationException $e) {
+            return $this->formatResponse(false, 'Validation error', 422, $e->errors());
+        } catch (\Exception $e) {
+            return $this->formatResponse(false, 'An error occurred during upload.', 500, ['error' => $e->getMessage()]);
         }
     }
 
