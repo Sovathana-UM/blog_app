@@ -86,6 +86,12 @@ class UserController extends Controller
             if (isset($validatedData['date_of_birth'])) {
                 $user->date_of_birth = $validatedData['date_of_birth'];
             }
+            if ($request->has('bio')) {
+                $user->bio = $request->input('bio');
+            }
+            if ($request->has('location')) {
+                $user->location = $request->input('location');
+            }
 
             if ($request->hasFile('profile_picture')) {
                 // Delete old picture if exists

@@ -23,9 +23,15 @@ class PostController extends Controller
             ]
         )
     )]
-    public function index()
+    public function index(Request $request)
     {
-        $posts = Post::with(['user', 'comments.user'])->withCount(['comments', 'likes'])->latest()->get();
+        $query = Post::with(['user', 'comments.user'])->withCount(['comments', 'likes'])->latest();
+        
+        if ($request->has('user_id')) {
+            $query->where('user_id', $request->input('user_id'));
+        }
+
+        $posts = $query->get();
         return $this->formatResponse(true, 'Posts retrieved successfully', 200, $posts);
     }
 
