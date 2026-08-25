@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "402583185168",
+    "project_id": "blog-app-4f5df",
+    "storage_bucket": "blog-app-4f5df.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:402583185168:android:7325a83a1528104bf82795",
+        "android_client_info": {
+          "package_name": "com.example.blog_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDST0zg1ygIv4dxnP0vHEGyXMqvgPYC_Zw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

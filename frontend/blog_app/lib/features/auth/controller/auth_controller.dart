@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../features/auth/repository/auth_repository.dart';
 import '../../../features/auth/models/user_model.dart';
@@ -43,7 +44,7 @@ class AuthController extends GetxController {
     debugPrint('AuthController: Checking auth status...');
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
-    
+
     if (token != null) {
       debugPrint('AuthController: Token found in local storage.');
       // Try to fetch current user to verify token is still valid
@@ -51,9 +52,12 @@ class AuthController extends GetxController {
       if (user != null) {
         debugPrint('AuthController: User is authenticated. Routing to ROOT.');
         currentUser.value = user;
+        await setupPushNotifications();
         Get.offAllNamed(Routes.ROOT);
       } else {
-        debugPrint('AuthController: Token invalid. Clearing storage and routing to LOGIN.');
+        debugPrint(
+          'AuthController: Token invalid. Clearing storage and routing to LOGIN.',
+        );
         // Token invalid, clear it
         await prefs.remove('auth_token');
         Get.offAllNamed(Routes.LOGIN);
@@ -61,6 +65,24 @@ class AuthController extends GetxController {
     } else {
       debugPrint('AuthController: No token found. Routing to LOGIN.');
       Get.offAllNamed(Routes.LOGIN);
+    }
+  }
+
+  Future<void> setupPushNotifications() async {
+    try {
+      FirebaseMessaging messaging = FirebaseMessaging.instance;
+      NotificationSettings settings = await messaging.requestPermission();
+      
+      if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+        String? token = await messaging.getToken();
+        if (token != null) {
+          debugPrint('FCM Token: $token');
+          // Assuming updateFcmToken exists in the AuthRepository or logic
+          await _authProvider.updateFcmToken(token);
+        }
+      }
+    } catch (e) {
+      debugPrint('Error setting up push notifications: $e');
     }
   }
 
@@ -77,39 +99,71 @@ class AuthController extends GetxController {
 
   Future<void> login() async {
     debugPrint('AuthController: login() called.');
-    if (loginEmailController.text.isEmpty || loginPasswordController.text.isEmpty) {
+    if (loginEmailController.text.isEmpty ||
+        loginPasswordController.text.isEmpty) {
       debugPrint('AuthController: Validation failed. Empty fields.');
-      Get.snackbar('Error', 'Please fill in all fields', backgroundColor: Colors.redAccent, colorText: Colors.white);
+      Get.snackbar(
+        'Error',
+        'Please fill in all fields',
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
       return;
     }
 
     isLoginLoading.value = true;
     try {
-      final response = await _authProvider.login(loginEmailController.text, loginPasswordController.text);
+      final response = await _authProvider.login(
+        loginEmailController.text,
+        loginPasswordController.text,
+      );
       if (response['success'] == true) {
         debugPrint('AuthController: Login successful. Payload: $response');
         // Save Token
         final token = response['data']['token'];
         if (token == null) {
-            debugPrint('AuthController: ERROR - Token is null in response!');
-            Get.snackbar('Error', 'Server did not return a token', backgroundColor: Colors.redAccent, colorText: Colors.white);
-            return;
+          debugPrint('AuthController: ERROR - Token is null in response!');
+          Get.snackbar(
+            'Error',
+            'Server did not return a token',
+            backgroundColor: Colors.redAccent,
+            colorText: Colors.white,
+          );
+          return;
         }
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('auth_token', token);
 
         // Fetch User Info
         currentUser.value = await _authProvider.getCurrentUser();
+        await setupPushNotifications();
 
-        Get.snackbar('Success', 'Welcome Back!', backgroundColor: Colors.green, colorText: Colors.white);
+        Get.snackbar(
+          'Success',
+          'Welcome Back!',
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
         Get.offAllNamed(Routes.ROOT);
       } else {
-        debugPrint('AuthController: Login failed from API: ${response['message']}');
-        Get.snackbar('Error', response['message'] ?? 'Login failed', backgroundColor: Colors.redAccent, colorText: Colors.white);
+        debugPrint(
+          'AuthController: Login failed from API: ${response['message']}',
+        );
+        Get.snackbar(
+          'Error',
+          response['message'] ?? 'Login failed',
+          backgroundColor: Colors.redAccent,
+          colorText: Colors.white,
+        );
       }
     } catch (e) {
       debugPrint('AuthController: Caught exception in login: $e');
-      Get.snackbar('Error', e.toString(), backgroundColor: Colors.redAccent, colorText: Colors.white);
+      Get.snackbar(
+        'Error',
+        e.toString(),
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
     } finally {
       isLoginLoading.value = false;
     }
@@ -117,15 +171,27 @@ class AuthController extends GetxController {
 
   Future<void> register() async {
     debugPrint('AuthController: register() called.');
-    if (regFirstNameController.text.isEmpty || regEmailController.text.isEmpty || regPasswordController.text.isEmpty) {
+    if (regFirstNameController.text.isEmpty ||
+        regEmailController.text.isEmpty ||
+        regPasswordController.text.isEmpty) {
       debugPrint('AuthController: Validation failed. Empty fields.');
-      Get.snackbar('Error', 'Please fill in all required fields', backgroundColor: Colors.redAccent, colorText: Colors.white);
+      Get.snackbar(
+        'Error',
+        'Please fill in all required fields',
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
       return;
     }
 
     if (regPasswordController.text != regConfirmPasswordController.text) {
       debugPrint('AuthController: Validation failed. Passwords do not match.');
-      Get.snackbar('Error', 'Passwords do not match', backgroundColor: Colors.redAccent, colorText: Colors.white);
+      Get.snackbar(
+        'Error',
+        'Passwords do not match',
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
       return;
     }
 
@@ -140,29 +206,54 @@ class AuthController extends GetxController {
       );
 
       if (response['success'] == true) {
-        debugPrint('AuthController: Registration successful. Payload: $response');
+        debugPrint(
+          'AuthController: Registration successful. Payload: $response',
+        );
         // Save Token
         final token = response['data']['token'];
         if (token == null) {
-            debugPrint('AuthController: ERROR - Token is null in response!');
-            Get.snackbar('Error', 'Server did not return a token', backgroundColor: Colors.redAccent, colorText: Colors.white);
-            return;
+          debugPrint('AuthController: ERROR - Token is null in response!');
+          Get.snackbar(
+            'Error',
+            'Server did not return a token',
+            backgroundColor: Colors.redAccent,
+            colorText: Colors.white,
+          );
+          return;
         }
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('auth_token', token);
 
         // Fetch User Info
         currentUser.value = await _authProvider.getCurrentUser();
+        await setupPushNotifications();
 
-        Get.snackbar('Success', 'Account created successfully!', backgroundColor: Colors.green, colorText: Colors.white);
+        Get.snackbar(
+          'Success',
+          'Account created successfully!',
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
         Get.offAllNamed(Routes.ROOT);
       } else {
-        debugPrint('AuthController: Registration failed from API: ${response['message']}');
-        Get.snackbar('Error', response['message'] ?? 'Registration failed', backgroundColor: Colors.redAccent, colorText: Colors.white);
+        debugPrint(
+          'AuthController: Registration failed from API: ${response['message']}',
+        );
+        Get.snackbar(
+          'Error',
+          response['message'] ?? 'Registration failed',
+          backgroundColor: Colors.redAccent,
+          colorText: Colors.white,
+        );
       }
     } catch (e) {
       debugPrint('AuthController: Caught exception in register: $e');
-      Get.snackbar('Error', 'Something went wrong', backgroundColor: Colors.redAccent, colorText: Colors.white);
+      Get.snackbar(
+        'Error',
+        'Something went wrong',
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
     } finally {
       isRegLoading.value = false;
     }
@@ -176,7 +267,9 @@ class AuthController extends GetxController {
       debugPrint('AuthController: Ignored error during API logout: $e');
       // Ignore error if already logged out on server
     } finally {
-      debugPrint('AuthController: Clearing local storage and routing to LOGIN.');
+      debugPrint(
+        'AuthController: Clearing local storage and routing to LOGIN.',
+      );
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('auth_token');
       currentUser.value = null;
@@ -194,5 +287,43 @@ class AuthController extends GetxController {
     regPasswordController.dispose();
     regConfirmPasswordController.dispose();
     super.onClose();
+  }
+
+  Future<bool> updateProfile(Map<String, dynamic> data) async {
+    try {
+      final res = await _authProvider.updateProfile(data);
+      if (res['success'] == true) {
+        await refreshCurrentUser();
+        return true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint('Update profile error: $e');
+      return false;
+    }
+  }
+
+  Future<bool> changePassword(String current, String newPass, String confirmPass) async {
+    try {
+      final res = await _authProvider.changePassword(current, newPass, confirmPass);
+      return res['success'] == true;
+    } catch (e) {
+      debugPrint('Change password error: $e');
+      return false;
+    }
+  }
+
+  Future<bool> uploadAvatar(String imagePath) async {
+    try {
+      final res = await _authProvider.uploadAvatar(imagePath);
+      if (res['success'] == true) {
+        await refreshCurrentUser();
+        return true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint('Upload avatar error: $e');
+      return false;
+    }
   }
 }

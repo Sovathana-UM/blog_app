@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../core/routes/app_routes.dart';
 import '../controller/root_controller.dart';
 import '../../home/views/home_view.dart';
 import '../../notifications/views/notifications_view.dart';
@@ -30,8 +31,7 @@ class RootView extends GetView<RootController> {
       }),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // Get.toNamed(Routes.CREATE_POST);
-          Get.snackbar('Add Post', 'Add post screen coming soon!');
+          Get.toNamed(Routes.POST);
         },
         backgroundColor: const Color(0xFF2E6FF2),
         elevation: 4,

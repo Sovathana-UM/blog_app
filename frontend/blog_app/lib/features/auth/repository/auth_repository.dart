@@ -93,17 +93,66 @@ class AuthRepository {
         debugPrint('AuthRepository: Current user fetched successfully.');
         return UserModel.fromJson(response.data['data']);
       }
-      debugPrint(
-        'AuthRepository: Fetch current user failed (success = false).',
-      );
+      debugPrint('AuthRepository: Fetch current user failed (success = false).');
       return null;
     } on DioException catch (e) {
       debugPrint('AuthRepository: Fetch user DioException: ${e.message}');
-      // Handled globally if 401
       return null;
     } catch (e) {
       debugPrint('AuthRepository: Fetch user unknown error: $e');
       return null;
+    }
+  }
+
+  Future<void> updateFcmToken(String token) async {
+    try {
+      await _dio.post('/profile/fcm-token', data: {'fcm_token': token});
+    } catch (e) {
+      debugPrint('AuthRepository: updateFcmToken error: $e');
+    }
+  }
+
+  Future<Map<String, dynamic>> updateProfile(Map<String, dynamic> data) async {
+    try {
+      final response = await _dio.put('/profile', data: data);
+      return response.data;
+    } on DioException catch (e) {
+      return e.response?.data ?? {'success': false, 'message': 'Unknown error'};
+    } catch (e) {
+      return {'success': false, 'message': e.toString()};
+    }
+  }
+
+  Future<Map<String, dynamic>> changePassword(String current, String newPass, String confirmPass) async {
+    try {
+      final response = await _dio.put('/change-password', data: {
+        'current_password': current,
+        'new_password': newPass,
+        'new_password_confirmation': confirmPass,
+      });
+      return response.data;
+    } on DioException catch (e) {
+      return e.response?.data ?? {'success': false, 'message': 'Unknown error'};
+    } catch (e) {
+      return {'success': false, 'message': e.toString()};
+    }
+  }
+
+  Future<Map<String, dynamic>> uploadAvatar(String imagePath) async {
+    try {
+      String fileName = imagePath.split('/').last;
+      if (!fileName.contains('.')) fileName = '$fileName.jpg';
+
+      final formData = FormData.fromMap({
+        'avatar': await MultipartFile.fromFile(imagePath, filename: fileName),
+      });
+
+      final response = await _dio.post('/profile/avatar', data: formData);
+      return response.data;
+    } on DioException catch (e) {
+      return e.response?.data ?? {'success': false, 'message': 'Unknown error'};
+    } catch (e) {
+      return {'success': false, 'message': e.toString()};
     }
   }
 }

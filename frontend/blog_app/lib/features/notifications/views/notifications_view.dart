@@ -8,13 +8,112 @@ class NotificationsView extends GetView<NotificationsController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Notifications'),
-        centerTitle: true,
+        title: const Text('Notifications', style: TextStyle(fontWeight: FontWeight.bold)),
+        centerTitle: false,
+        elevation: 0,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.done_all),
+            tooltip: 'Mark all as read',
+            onPressed: controller.markAllAsRead,
+          ),
+        ],
       ),
-      body: const Center(
-        child: Text('Notifications Content'),
-      ),
+      body: Obx(() {
+        if (controller.isLoading.value) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (controller.hasError.value) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline, size: 64, color: Colors.redAccent),
+                const SizedBox(height: 16),
+                const Text('Failed to load notifications'),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: controller.fetchNotifications,
+                  child: const Text('Retry'),
+                ),
+              ],
+            ),
+          );
+        }
+
+        if (controller.notifications.isEmpty) {
+          return const Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.notifications_off_outlined, size: 64, color: Colors.grey),
+                SizedBox(height: 16),
+                Text('No notifications yet', style: TextStyle(fontSize: 18, color: Colors.grey)),
+              ],
+            ),
+          );
+        }
+
+        return RefreshIndicator(
+          onRefresh: controller.fetchNotifications,
+          child: ListView.builder(
+            itemCount: controller.notifications.length,
+            itemBuilder: (context, index) {
+              final notification = controller.notifications[index];
+              return ListTile(
+                tileColor: notification.isRead ? Colors.white : Colors.blue.withOpacity(0.05),
+                leading: CircleAvatar(
+                  backgroundColor: notification.isRead ? Colors.grey[200] : const Color(0xFF2E6FF2).withOpacity(0.2),
+                  child: Icon(
+                    Icons.notifications,
+                    color: notification.isRead ? Colors.grey : const Color(0xFF2E6FF2),
+                  ),
+                ),
+                title: Text(
+                  notification.title,
+                  style: TextStyle(
+                    fontWeight: notification.isRead ? FontWeight.normal : FontWeight.bold,
+                  ),
+                ),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 4),
+                    Text(notification.body),
+                    const SizedBox(height: 4),
+                    Text(
+                      _formatDate(notification.createdAt),
+                      style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                    ),
+                  ],
+                ),
+                onTap: () {
+                  controller.markAsRead(notification);
+                  // Handle navigation based on notification.type or notification.data if needed
+                },
+              );
+            },
+          ),
+        );
+      }),
     );
+  }
+
+  String _formatDate(String dateStr) {
+    try {
+      final DateTime date = DateTime.parse(dateStr);
+      final duration = DateTime.now().difference(date);
+      if (duration.inDays > 0) return '${duration.inDays} days ago';
+      if (duration.inHours > 0) return '${duration.inHours} hours ago';
+      if (duration.inMinutes > 0) return '${duration.inMinutes} minutes ago';
+      return 'Just now';
+    } catch (_) {
+      return dateStr;
+    }
   }
 }

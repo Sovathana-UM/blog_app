@@ -11,25 +11,35 @@ class PostView extends GetView<PostController> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Create Post', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Create Post',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         centerTitle: true,
         elevation: 0,
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         actions: [
-          Obx(() => TextButton(
-                onPressed: controller.isSubmitting.value ? null : controller.submitPost,
-                child: controller.isSubmitting.value
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Text(
-                        'Post',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          Obx(
+            () => TextButton(
+              onPressed: controller.isSubmitting.value
+                  ? null
+                  : controller.submitPost,
+              child: controller.isSubmitting.value
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text(
+                      'Post',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
                       ),
-              )),
+                    ),
+            ),
+          ),
           const SizedBox(width: 8),
         ],
       ),
@@ -50,7 +60,7 @@ class PostView extends GetView<PostController> {
               style: const TextStyle(fontSize: 18),
             ),
             const SizedBox(height: 24),
-            
+
             // Image Picker Area
             Obx(() {
               if (controller.selectedImage.value != null) {
@@ -76,14 +86,18 @@ class PostView extends GetView<PostController> {
                             color: Colors.black54,
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(Icons.close, color: Colors.white, size: 20),
+                          child: const Icon(
+                            Icons.close,
+                            color: Colors.white,
+                            size: 20,
+                          ),
                         ),
                       ),
                     ),
                   ],
                 );
               }
-              
+
               return GestureDetector(
                 onTap: controller.pickImage,
                 child: Container(
@@ -92,12 +106,19 @@ class PostView extends GetView<PostController> {
                   decoration: BoxDecoration(
                     color: Colors.grey[100],
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey[300]!, style: BorderStyle.solid),
+                    border: Border.all(
+                      color: Colors.grey[300]!,
+                      style: BorderStyle.solid,
+                    ),
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.add_photo_alternate_outlined, size: 48, color: Colors.grey[400]),
+                      Icon(
+                        Icons.add_photo_alternate_outlined,
+                        size: 48,
+                        color: Colors.grey[400],
+                      ),
                       const SizedBox(height: 12),
                       Text(
                         'Add a photo',
@@ -110,10 +131,7 @@ class PostView extends GetView<PostController> {
                       const SizedBox(height: 4),
                       Text(
                         'Required',
-                        style: TextStyle(
-                          color: Colors.grey[400],
-                          fontSize: 12,
-                        ),
+                        style: TextStyle(color: Colors.grey[400], fontSize: 12),
                       ),
                     ],
                   ),

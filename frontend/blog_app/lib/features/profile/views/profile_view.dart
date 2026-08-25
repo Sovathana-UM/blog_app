@@ -88,7 +88,7 @@ class ProfileView extends GetView<ProfileController> {
                     children: [
                       _buildPostsTab(),
                       const Center(child: Text('No Comments Yet')),
-                      const Center(child: Text('No Saved Posts Yet')),
+                      _buildSavedTab(),
                     ],
                   ),
                 ),
@@ -135,6 +135,40 @@ class ProfileView extends GetView<ProfileController> {
     });
   }
 
+  Widget _buildSavedTab() {
+    return Obx(() {
+      if (controller.savedPosts.isEmpty) {
+        return const Center(
+          child: Padding(
+            padding: EdgeInsets.all(32.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.bookmark_border, size: 64, color: Colors.grey),
+                SizedBox(height: 16),
+                Text('No Saved Posts', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                SizedBox(height: 8),
+                Text(
+                  'Save interesting posts to read them later.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.grey),
+                ),
+              ],
+            ),
+          ),
+        );
+      }
+
+      return ListView.builder(
+        padding: const EdgeInsets.only(top: 8, bottom: 80),
+        itemCount: controller.savedPosts.length,
+        itemBuilder: (context, index) {
+          final post = controller.savedPosts[index];
+          return PostCard(post: post);
+        },
+      );
+    });
+  }
 }
 
 class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {

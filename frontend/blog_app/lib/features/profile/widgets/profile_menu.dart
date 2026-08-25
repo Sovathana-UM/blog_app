@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import '../views/edit_profile_view.dart';
 
 class ProfileMenu extends StatelessWidget {
   final VoidCallback onLogout;
@@ -12,7 +14,9 @@ class ProfileMenu extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        _buildMenuItem(Icons.person_outline, 'Edit Profile'),
+        _buildMenuItem(Icons.person_outline, 'Edit Profile', onTap: () {
+          Get.to(() => const EditProfileView());
+        }),
         _buildMenuItem(Icons.article_outlined, 'My Posts'),
         _buildMenuItem(Icons.bookmark_border, 'Saved Posts'),
         _buildMenuItem(Icons.notifications_none, 'Notification Settings'),
@@ -30,12 +34,12 @@ class ProfileMenu extends StatelessWidget {
     );
   }
 
-  Widget _buildMenuItem(IconData icon, String title) {
+  Widget _buildMenuItem(IconData icon, String title, {VoidCallback? onTap}) {
     return ListTile(
       leading: Icon(icon, color: Colors.grey[700]),
       title: Text(title),
       trailing: const Icon(Icons.chevron_right, color: Colors.grey),
-      onTap: () {},
+      onTap: onTap,
     );
   }
 }

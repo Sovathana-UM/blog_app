@@ -12,6 +12,7 @@ class ProfileController extends GetxController {
   final RxBool isLoading = true.obs;
   final RxBool hasError = false.obs;
   final RxList<PostModel> userPosts = <PostModel>[].obs;
+  final RxList<PostModel> savedPosts = <PostModel>[].obs;
 
   UserModel? get currentUser => authController.currentUser.value;
 
@@ -24,11 +25,14 @@ class ProfileController extends GetxController {
   Future<void> loadProfileData() async {
     isLoading.value = true;
     hasError.value = false;
-    
+
     try {
       await authController.refreshCurrentUser();
       if (currentUser != null) {
-        await getUserPosts();
+        await Future.wait([
+          getUserPosts(),
+          getSavedPosts(),
+        ]);
       }
     } catch (e) {
       debugPrint('ProfileController Error loading profile: $e');
@@ -40,11 +44,20 @@ class ProfileController extends GetxController {
 
   Future<void> getUserPosts() async {
     try {
-      final posts = await _postProvider.getPosts(userId: currentUser!.id);
+      final posts = await _postProvider.getMyPosts();
       userPosts.assignAll(posts);
     } catch (e) {
       debugPrint('ProfileController Error fetching posts: $e');
       hasError.value = true;
+    }
+  }
+
+  Future<void> getSavedPosts() async {
+    try {
+      final posts = await _postProvider.getSavedPosts();
+      savedPosts.assignAll(posts);
+    } catch (e) {
+      debugPrint('ProfileController Error fetching saved posts: $e');
     }
   }
 
