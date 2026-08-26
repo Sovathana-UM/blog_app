@@ -1,66 +1,63 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\UserController;
-use App\Http\Controllers\PostController;
-use App\Http\Controllers\CommentController;
-use App\Http\Controllers\LikeController;
-use App\Http\Controllers\CategoryController;
-use App\Http\Controllers\NotificationController;
-use App\Http\Controllers\SavedPostController;
+use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\ProfileController;
+use App\Http\Controllers\Api\V1\PostController;
+use App\Http\Controllers\Api\V1\CommentController;
+use App\Http\Controllers\Api\V1\LikeController;
 
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
+use App\Http\Controllers\Api\V1\NotificationController;
+use App\Http\Controllers\Api\V1\SavedPostController;
 
-// Fallback route for unauthenticated API requests to prevent RouteNotFoundException
-Route::get('/login', function () {
-    return response()->json(['message' => 'Unauthenticated.'], 401);
-})->name('login');
+Route::prefix('v1')->group(function () {
+    // Health Check
+    Route::get('health', function () {
+        return response()->json(['status' => 'ok']);
+    });
 
-Route::middleware(['auth:sanctum'])->group(function () {
-    Route::post('/logout', [AuthController::class, 'logout']);
+    // Auth
+    Route::post('auth/register', [AuthController::class, 'register']);
+    Route::post('auth/login', [AuthController::class, 'login']);
 
-    // Profile & User
-    Route::get('/current-user', [UserController::class, 'getUser']);
-    Route::get('/profile', [UserController::class, 'getUser']);
-    Route::put('/profile', [UserController::class, 'updateProfile']);
-    Route::post('/profile/avatar', [UserController::class, 'uploadAvatar']);
-    Route::post('/user/update-email', [UserController::class, 'updateEmail']); // keeping this extra one
-    Route::put('/change-password', [UserController::class, 'changePassword']);
-    Route::post('/user/fcm-token', [UserController::class, 'updateFcmToken']);
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('auth/logout', [AuthController::class, 'logout']);
+        
+        // Profile
+        Route::get('current-user', [ProfileController::class, 'show']);
+        Route::put('current-user', [ProfileController::class, 'update']);
+        Route::post('current-user/avatar', [ProfileController::class, 'uploadAvatar']);
+        Route::put('current-user/password', [ProfileController::class, 'changePassword']);
+        Route::post('current-user/fcm-token', [ProfileController::class, 'updateFcmToken']);
+        Route::delete('current-user/fcm-token', [ProfileController::class, 'removeFcmToken']);
+        
 
-    // Categories
-    Route::get('/categories', [CategoryController::class, 'index']);
 
-    // Posts
-    Route::get('/posts', [PostController::class, 'index']);
-    Route::get('/my-posts', [PostController::class, 'myPosts']);
-    Route::get('/posts/{id}', [PostController::class, 'show']);
-    Route::post('/posts', [PostController::class, 'store']);
-    Route::put('/posts/{id}', [PostController::class, 'update']);
-    Route::delete('/posts/{id}', [PostController::class, 'destroy']);
+        // Posts
+        Route::get('posts/my-posts', [PostController::class, 'myPosts']);
+        Route::get('posts/search', [PostController::class, 'search']);
+        Route::apiResource('posts', PostController::class);
+        
+        // Post Interactions (Like)
+        Route::get('posts/{post}/likes', [LikeController::class, 'index']);
+        Route::post('posts/{post}/like', [LikeController::class, 'store']);
+        Route::delete('posts/{post}/like', [LikeController::class, 'destroy']);
+        
+        // Post Interactions (Save)
+        Route::post('posts/{post}/save', [SavedPostController::class, 'store']);
+        Route::delete('posts/{post}/save', [SavedPostController::class, 'destroy']);
+        
+        // Saved Posts (Listing)
+        Route::get('saved-posts', [SavedPostController::class, 'index']);
 
-    // Saved Posts
-    Route::get('/saved-posts', [SavedPostController::class, 'index']);
-    Route::post('/posts/{id}/save', [SavedPostController::class, 'store']);
-    Route::delete('/posts/{id}/save', [SavedPostController::class, 'destroy']);
+        // Comments (Nested Resource)
+        Route::apiResource('posts.comments', CommentController::class)->only(['index', 'store']);
+        Route::apiResource('comments', CommentController::class)->only(['update', 'destroy']);
 
-    // Search
-    Route::get('/search/posts', [PostController::class, 'search']);
-
-    // Comments
-    Route::get('/posts/{id}/comments', [CommentController::class, 'index']);
-    Route::post('/comments', [CommentController::class, 'store']);
-    Route::put('/comments/{id}', [CommentController::class, 'update']);
-    Route::delete('/comments/{id}', [CommentController::class, 'destroy']);
-
-    // Likes (Extra from MVP but good to keep)
-    Route::post('/posts/{id}/like', [LikeController::class, 'toggleLike']);
-
-    // Notifications
-    Route::get('/notifications', [NotificationController::class, 'index']);
-    Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
-    Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
+        // Notifications
+        Route::get('notifications', [NotificationController::class, 'index']);
+        Route::get('notifications/unread-count', [NotificationController::class, 'unreadCount']);
+        Route::patch('notifications/{notification}/read', [NotificationController::class, 'markAsRead']);
+        Route::patch('notifications/read-all', [NotificationController::class, 'markAllAsRead']);
+    });
 });

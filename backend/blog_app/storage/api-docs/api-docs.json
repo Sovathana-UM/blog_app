@@ -2,33 +2,34 @@
     "openapi": "3.0.0",
     "info": {
         "title": "Blog App API",
-        "description": "API Documentation",
+        "description": "Blog API Documentation",
         "version": "1.0.0"
     },
     "servers": [
         {
-            "url": "http://127.0.0.1:8000/api",
-            "description": "Local API Server"
+            "url": "http://localhost:8000/api/v1",
+            "description": "Local API V1 Server"
         }
     ],
     "paths": {
-        "/register": {
+        "/auth/register": {
             "post": {
                 "tags": [
-                    "Authentication"
+                    "Auth"
                 ],
                 "summary": "Register a new user",
-                "operationId": "0903f2e0df1a8857bee538fc055417f0",
+                "operationId": "8f20688904ee49d0d8739eeb08faf0b1",
                 "requestBody": {
                     "required": true,
                     "content": {
-                        "multipart/form-data": {
+                        "application/json": {
                             "schema": {
                                 "required": [
                                     "first_name",
                                     "last_name",
                                     "email",
-                                    "password"
+                                    "password",
+                                    "password_confirmation"
                                 ],
                                 "properties": {
                                     "first_name": {
@@ -49,23 +50,10 @@
                                         "format": "password",
                                         "example": "password123"
                                     },
-                                    "gender": {
+                                    "password_confirmation": {
                                         "type": "string",
-                                        "example": "male",
-                                        "enum": [
-                                            "male",
-                                            "female",
-                                            "other"
-                                        ]
-                                    },
-                                    "date_of_birth": {
-                                        "type": "string",
-                                        "format": "date",
-                                        "example": "1990-01-01"
-                                    },
-                                    "profile_picture": {
-                                        "type": "string",
-                                        "format": "binary"
+                                        "format": "password",
+                                        "example": "password123"
                                     }
                                 },
                                 "type": "object"
@@ -75,56 +63,21 @@
                 },
                 "responses": {
                     "201": {
-                        "description": "Successful registration",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean",
-                                            "example": true
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Registration successful"
-                                        },
-                                        "statusCode": {
-                                            "type": "integer",
-                                            "example": 201
-                                        },
-                                        "data": {
-                                            "properties": {
-                                                "token": {
-                                                    "type": "string"
-                                                },
-                                                "user": {
-                                                    "type": "object"
-                                                }
-                                            },
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
+                        "description": "User registered successfully"
                     },
                     "422": {
-                        "description": "Validation Error"
-                    },
-                    "500": {
-                        "description": "Server Error"
+                        "description": "Validation error"
                     }
                 }
             }
         },
-        "/login": {
+        "/auth/login": {
             "post": {
                 "tags": [
-                    "Authentication"
+                    "Auth"
                 ],
-                "summary": "Log in to the application",
-                "operationId": "2dd578ff7aba2721293dac66833b27d1",
+                "summary": "Login user",
+                "operationId": "985cd5203e2d0a820e113f2f4fdb2847",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -153,93 +106,24 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Successful login",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean",
-                                            "example": true
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Login successful"
-                                        },
-                                        "statusCode": {
-                                            "type": "integer",
-                                            "example": 200
-                                        },
-                                        "data": {
-                                            "properties": {
-                                                "token": {
-                                                    "type": "string"
-                                                },
-                                                "user": {
-                                                    "type": "object"
-                                                }
-                                            },
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Invalid credentials"
+                        "description": "Logged in successfully"
                     },
                     "422": {
-                        "description": "Validation Error"
-                    },
-                    "500": {
-                        "description": "Server Error"
+                        "description": "Invalid credentials"
                     }
                 }
             }
         },
-        "/logout": {
+        "/auth/logout": {
             "post": {
                 "tags": [
-                    "Authentication"
+                    "Auth"
                 ],
-                "summary": "Log out of the application",
-                "operationId": "68a6108af04af5e3bc1ea68a6c6f1299",
+                "summary": "Logout user",
+                "operationId": "a05022a34eef599e04fb0a5254375b84",
                 "responses": {
                     "200": {
-                        "description": "Logged out successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean",
-                                            "example": true
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Logged out successfully"
-                                        },
-                                        "statusCode": {
-                                            "type": "integer",
-                                            "example": 200
-                                        },
-                                        "data": {
-                                            "type": "object",
-                                            "nullable": true
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthenticated"
-                    },
-                    "500": {
-                        "description": "Server Error"
+                        "description": "Logged out successfully"
                     }
                 },
                 "security": [
@@ -249,30 +133,52 @@
                 ]
             }
         },
-        "/categories": {
-            "get": {
-                "tags": [
-                    "Categories"
-                ],
-                "summary": "Get all categories",
-                "operationId": "ead5fb1cf2a7453acb2e37928a1b1eaf",
-                "responses": {
-                    "200": {
-                        "description": "List of categories"
-                    }
-                }
-            }
-        },
-        "/posts/{id}/comments": {
+        "/posts/{post}/comments": {
             "get": {
                 "tags": [
                     "Comments"
                 ],
-                "summary": "Get all comments for a post",
-                "operationId": "63c43980f2735075828f9b693670b815",
+                "summary": "Get comments for a post",
+                "operationId": "ec263c079d560e34abedba80029bab22",
                 "parameters": [
                     {
-                        "name": "id",
+                        "name": "post",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Comments retrieved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Comments"
+                ],
+                "summary": "Add a comment to a post",
+                "operationId": "c0a44aa6d73ec55b25bbed167d6b0322",
+                "parameters": [
+                    {
+                        "name": "post",
                         "in": "path",
                         "required": true,
                         "schema": {
@@ -280,45 +186,17 @@
                         }
                     }
                 ],
-                "responses": {
-                    "200": {
-                        "description": "List of comments"
-                    },
-                    "404": {
-                        "description": "Post not found"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/comments": {
-            "post": {
-                "tags": [
-                    "Comments"
-                ],
-                "summary": "Add a comment",
-                "operationId": "a0c0613c248bc727d51299e2eb03d2e3",
                 "requestBody": {
                     "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "post_id",
-                                    "comment"
+                                    "content"
                                 ],
                                 "properties": {
-                                    "post_id": {
-                                        "type": "string",
-                                        "example": "uuid-1234"
-                                    },
-                                    "comment": {
-                                        "type": "string",
-                                        "example": "Great post!"
+                                    "content": {
+                                        "type": "string"
                                     }
                                 },
                                 "type": "object"
@@ -329,12 +207,6 @@
                 "responses": {
                     "201": {
                         "description": "Comment added successfully"
-                    },
-                    "404": {
-                        "description": "Post not found"
-                    },
-                    "422": {
-                        "description": "Validation error"
                     }
                 },
                 "security": [
@@ -344,16 +216,16 @@
                 ]
             }
         },
-        "/comments/{id}": {
+        "/comments/{comment}": {
             "put": {
                 "tags": [
                     "Comments"
                 ],
                 "summary": "Update a comment",
-                "operationId": "e6903ffe88ec53d1900c913ecab39ab0",
+                "operationId": "c7ffaf264c4771e4b24edcd602178bbe",
                 "parameters": [
                     {
-                        "name": "id",
+                        "name": "comment",
                         "in": "path",
                         "required": true,
                         "schema": {
@@ -367,12 +239,11 @@
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "comment"
+                                    "content"
                                 ],
                                 "properties": {
-                                    "comment": {
-                                        "type": "string",
-                                        "example": "Updated comment text"
+                                    "content": {
+                                        "type": "string"
                                     }
                                 },
                                 "type": "object"
@@ -383,12 +254,6 @@
                 "responses": {
                     "200": {
                         "description": "Comment updated successfully"
-                    },
-                    "403": {
-                        "description": "Unauthorized"
-                    },
-                    "404": {
-                        "description": "Comment not found"
                     }
                 },
                 "security": [
@@ -402,10 +267,10 @@
                     "Comments"
                 ],
                 "summary": "Delete a comment",
-                "operationId": "08965db07afd6799973a7023fc640b33",
+                "operationId": "a94272ec4b724aa2b7a42c4e3e058638",
                 "parameters": [
                     {
-                        "name": "id",
+                        "name": "comment",
                         "in": "path",
                         "required": true,
                         "schema": {
@@ -416,12 +281,6 @@
                 "responses": {
                     "200": {
                         "description": "Comment deleted successfully"
-                    },
-                    "403": {
-                        "description": "Unauthorized to delete this comment"
-                    },
-                    "404": {
-                        "description": "Comment not found"
                     }
                 },
                 "security": [
@@ -431,16 +290,54 @@
                 ]
             }
         },
-        "/posts/{id}/like": {
-            "post": {
+        "/posts/{post}/likes": {
+            "get": {
                 "tags": [
-                    "Likes"
+                    "Interactions"
                 ],
-                "summary": "Toggle like on a post",
-                "operationId": "717f6fa316c81c5e5232845574a9464e",
+                "summary": "Get users who liked a post",
+                "operationId": "bd0dc70dfeda300e39f7bb5ebaeeac33",
                 "parameters": [
                     {
-                        "name": "id",
+                        "name": "post",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Users who liked retrieved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/posts/{post}/like": {
+            "post": {
+                "tags": [
+                    "Interactions"
+                ],
+                "summary": "Like a post",
+                "operationId": "b0059c07f9c95ffa8e5947c60bd1cf3a",
+                "parameters": [
+                    {
+                        "name": "post",
                         "in": "path",
                         "required": true,
                         "schema": {
@@ -450,10 +347,34 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Like toggled successfully"
-                    },
-                    "404": {
-                        "description": "Post not found"
+                        "description": "Post liked successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Interactions"
+                ],
+                "summary": "Unlike a post",
+                "operationId": "292f10a04ec4930d8e32c50f4debd08e",
+                "parameters": [
+                    {
+                        "name": "post",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Post unliked successfully"
                     }
                 },
                 "security": [
@@ -468,11 +389,22 @@
                 "tags": [
                     "Notifications"
                 ],
-                "summary": "Get all notifications",
-                "operationId": "0f031f66cd8c52bf73e89fb2d050ad83",
+                "summary": "Get user notifications",
+                "operationId": "a48dc613f9c4d7d3414d6dcf848889c8",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
-                        "description": "List of notifications"
+                        "description": "Notifications retrieved successfully"
                     }
                 },
                 "security": [
@@ -482,20 +414,39 @@
                 ]
             }
         },
-        "/notifications/{id}/read": {
-            "post": {
+        "/notifications/unread-count": {
+            "get": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Get unread notifications count",
+                "operationId": "584990badb02c0857a345ef40f46fc7f",
+                "responses": {
+                    "200": {
+                        "description": "Unread count retrieved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/notifications/{notification}/read": {
+            "patch": {
                 "tags": [
                     "Notifications"
                 ],
                 "summary": "Mark a notification as read",
-                "operationId": "e8ec77e64be528452b6b9ee62d832d70",
+                "operationId": "862ee3e136b3678035208ff086ffa17d",
                 "parameters": [
                     {
-                        "name": "id",
+                        "name": "notification",
                         "in": "path",
                         "required": true,
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -512,12 +463,12 @@
             }
         },
         "/notifications/read-all": {
-            "post": {
+            "patch": {
                 "tags": [
                     "Notifications"
                 ],
                 "summary": "Mark all notifications as read",
-                "operationId": "e873443612632a319ae0f88db368dd7a",
+                "operationId": "8f6675a2e45345755fcb90a0d3ec2b26",
                 "responses": {
                     "200": {
                         "description": "All notifications marked as read"
@@ -535,38 +486,22 @@
                 "tags": [
                     "Posts"
                 ],
-                "summary": "Get all posts",
-                "operationId": "5f292ed47bdbfa79356750be0807450c",
+                "summary": "Get paginated list of posts",
+                "operationId": "1ff9fc4859f3573024de6cfb1b3e302e",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
-                        "description": "List of posts",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean",
-                                            "example": true
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Posts retrieved successfully"
-                                        },
-                                        "statusCode": {
-                                            "type": "integer",
-                                            "example": 200
-                                        },
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object"
-                                            }
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
+                        "description": "Posts retrieved successfully"
                     }
                 },
                 "security": [
@@ -580,23 +515,29 @@
                     "Posts"
                 ],
                 "summary": "Create a new post",
-                "operationId": "c2e0b0e26215e6d34ece33ebae25f7df",
+                "operationId": "d233a4871eaa787e220f03b562dc33f8",
                 "requestBody": {
                     "required": true,
                     "content": {
                         "multipart/form-data": {
                             "schema": {
                                 "required": [
-                                    "image"
+                                    "title",
+                                    "content"
                                 ],
                                 "properties": {
                                     "title": {
-                                        "type": "string",
-                                        "example": "My new post!"
+                                        "type": "string"
                                     },
-                                    "image": {
-                                        "type": "string",
-                                        "format": "binary"
+                                    "content": {
+                                        "type": "string"
+                                    },
+                                    "images[]": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "format": "binary"
+                                        }
                                     }
                                 },
                                 "type": "object"
@@ -607,9 +548,6 @@
                 "responses": {
                     "201": {
                         "description": "Post created successfully"
-                    },
-                    "422": {
-                        "description": "Validation error"
                     }
                 },
                 "security": [
@@ -619,16 +557,16 @@
                 ]
             }
         },
-        "/posts/{id}": {
+        "/posts/{post}": {
             "get": {
                 "tags": [
                     "Posts"
                 ],
-                "summary": "Get a single post",
-                "operationId": "c8bd68bc05422c879bc2dd429ae5782b",
+                "summary": "Get a specific post",
+                "operationId": "737978d9807159eceef1fd16a9e6d2b9",
                 "parameters": [
                     {
-                        "name": "id",
+                        "name": "post",
                         "in": "path",
                         "required": true,
                         "schema": {
@@ -639,9 +577,6 @@
                 "responses": {
                     "200": {
                         "description": "Post retrieved successfully"
-                    },
-                    "404": {
-                        "description": "Post not found"
                     }
                 },
                 "security": [
@@ -655,10 +590,10 @@
                     "Posts"
                 ],
                 "summary": "Update an existing post",
-                "operationId": "06c81121178208730e11d2f6b655e78d",
+                "operationId": "1ae29ee1ce8878b1ac9bf437f0d2857b",
                 "parameters": [
                     {
-                        "name": "id",
+                        "name": "post",
                         "in": "path",
                         "required": true,
                         "schema": {
@@ -673,16 +608,10 @@
                             "schema": {
                                 "properties": {
                                     "title": {
-                                        "type": "string",
-                                        "example": "Updated Title"
+                                        "type": "string"
                                     },
                                     "content": {
-                                        "type": "string",
-                                        "example": "Updated Content"
-                                    },
-                                    "category_id": {
-                                        "type": "integer",
-                                        "example": 1
+                                        "type": "string"
                                     }
                                 },
                                 "type": "object"
@@ -706,10 +635,10 @@
                     "Posts"
                 ],
                 "summary": "Delete a post",
-                "operationId": "54788a50da690c5ee1dfdc25425a1f87",
+                "operationId": "62215003a25650c8f10c6a90fc27b5cb",
                 "parameters": [
                     {
-                        "name": "id",
+                        "name": "post",
                         "in": "path",
                         "required": true,
                         "schema": {
@@ -720,12 +649,6 @@
                 "responses": {
                     "200": {
                         "description": "Post deleted successfully"
-                    },
-                    "403": {
-                        "description": "Unauthorized to delete this post"
-                    },
-                    "404": {
-                        "description": "Post not found"
                     }
                 },
                 "security": [
@@ -735,16 +658,27 @@
                 ]
             }
         },
-        "/my-posts": {
+        "/posts/my-posts": {
             "get": {
                 "tags": [
                     "Posts"
                 ],
                 "summary": "Get current user's posts",
-                "operationId": "ce30bb9c51bd9abe6e8c04c72dfe1d6a",
+                "operationId": "c3d9f169b14213e7ccd7eba7bfa9981e",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
-                        "description": "List of user's posts"
+                        "description": "My posts retrieved successfully"
                     }
                 },
                 "security": [
@@ -754,13 +688,13 @@
                 ]
             }
         },
-        "/search/posts": {
+        "/posts/search": {
             "get": {
                 "tags": [
                     "Posts"
                 ],
-                "summary": "Search posts",
-                "operationId": "8fd9644faaf7916225544503ecac6a68",
+                "summary": "Search posts by query",
+                "operationId": "4aaad8039cb89529f8ac4b5122b6cb91",
                 "parameters": [
                     {
                         "name": "q",
@@ -769,62 +703,39 @@
                         "schema": {
                             "type": "string"
                         }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "List of posts matching search query"
-                    }
-                },
-                "security": [
+                    },
                     {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/saved-posts": {
-            "get": {
-                "tags": [
-                    "Saved Posts"
-                ],
-                "summary": "Get all saved posts for the current user",
-                "operationId": "1a425b4e608fa49c983f376c8e176b82",
-                "responses": {
-                    "200": {
-                        "description": "List of saved posts"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/posts/{id}/save": {
-            "post": {
-                "tags": [
-                    "Saved Posts"
-                ],
-                "summary": "Save a post",
-                "operationId": "4b891fa020e7683db04a686e47a3280d",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number",
+                        "required": false,
                         "schema": {
-                            "type": "string"
+                            "type": "integer"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Post saved successfully"
-                    },
-                    "404": {
-                        "description": "Post not found"
+                        "description": "Search results retrieved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/current-user": {
+            "get": {
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Get current user profile",
+                "operationId": "22b83dfa07e2553a633ffdd5f41626bb",
+                "responses": {
+                    "200": {
+                        "description": "Profile retrieved successfully"
                     }
                 },
                 "security": [
@@ -833,90 +744,12 @@
                     }
                 ]
             },
-            "delete": {
-                "tags": [
-                    "Saved Posts"
-                ],
-                "summary": "Unsave a post",
-                "operationId": "a14a1499c5f44cf61bb2a5906a22f6a1",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Post unsaved successfully"
-                    },
-                    "404": {
-                        "description": "Post not found"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/user": {
-            "get": {
-                "tags": [
-                    "User"
-                ],
-                "summary": "Get current user info",
-                "operationId": "ed7384d7b0315a693466a7528ac2c3a8",
-                "responses": {
-                    "200": {
-                        "description": "Successful response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean",
-                                            "example": true
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "User retrieved successfully"
-                                        },
-                                        "statusCode": {
-                                            "type": "integer",
-                                            "example": 200
-                                        },
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthenticated"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/profile": {
             "put": {
                 "tags": [
-                    "User"
+                    "Profile"
                 ],
-                "summary": "Update user profile",
-                "operationId": "423b0a7d6bc9e3f8dd9fe56b2909cc27",
+                "summary": "Update profile details",
+                "operationId": "70bdec17cad9251c82cb4d79fb01e803",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -931,27 +764,13 @@
                                         "type": "string",
                                         "example": "Doe"
                                     },
-                                    "gender": {
-                                        "type": "string",
-                                        "example": "male",
-                                        "enum": [
-                                            "male",
-                                            "female",
-                                            "other"
-                                        ]
-                                    },
-                                    "date_of_birth": {
-                                        "type": "string",
-                                        "format": "date",
-                                        "example": "1990-01-01"
-                                    },
                                     "bio": {
                                         "type": "string",
-                                        "example": "Flutter Developer"
+                                        "example": "Software Engineer"
                                     },
                                     "location": {
                                         "type": "string",
-                                        "example": "Cambodia"
+                                        "example": "New York"
                                     }
                                 },
                                 "type": "object"
@@ -971,13 +790,13 @@
                 ]
             }
         },
-        "/profile/avatar": {
+        "/current-user/avatar": {
             "post": {
                 "tags": [
-                    "User"
+                    "Profile"
                 ],
                 "summary": "Upload profile avatar",
-                "operationId": "1535ef7047ded616aae81a322abcb71f",
+                "operationId": "7d88d9157e58b55be63070f8b9196504",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -1009,91 +828,13 @@
                 ]
             }
         },
-        "/user/update-email": {
-            "post": {
-                "tags": [
-                    "User"
-                ],
-                "summary": "Securely update email",
-                "operationId": "89ec1d13108ecc0ce6d1377feafec85a",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "email",
-                                    "password"
-                                ],
-                                "properties": {
-                                    "email": {
-                                        "type": "string",
-                                        "format": "email",
-                                        "example": "newemail@example.com"
-                                    },
-                                    "password": {
-                                        "type": "string",
-                                        "format": "password",
-                                        "example": "your_current_password"
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Email updated successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean",
-                                            "example": true
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Email updated successfully"
-                                        },
-                                        "statusCode": {
-                                            "type": "integer",
-                                            "example": 200
-                                        },
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Incorrect password"
-                    },
-                    "422": {
-                        "description": "Validation Error"
-                    },
-                    "500": {
-                        "description": "Server Error"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/change-password": {
+        "/current-user/password": {
             "put": {
                 "tags": [
-                    "User"
+                    "Profile"
                 ],
-                "summary": "Change password",
-                "operationId": "454520d8a355bf09aaf9753f399eb793",
+                "summary": "Change user password",
+                "operationId": "e0b0aa4b6e2a5e8c48d05c1b11e5891d",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -1101,21 +842,21 @@
                             "schema": {
                                 "required": [
                                     "current_password",
-                                    "new_password",
-                                    "new_password_confirmation"
+                                    "password",
+                                    "password_confirmation"
                                 ],
                                 "properties": {
                                     "current_password": {
                                         "type": "string",
-                                        "example": "oldpass123"
+                                        "format": "password"
                                     },
-                                    "new_password": {
+                                    "password": {
                                         "type": "string",
-                                        "example": "newpass123"
+                                        "format": "password"
                                     },
-                                    "new_password_confirmation": {
+                                    "password_confirmation": {
                                         "type": "string",
-                                        "example": "newpass123"
+                                        "format": "password"
                                     }
                                 },
                                 "type": "object"
@@ -1126,9 +867,147 @@
                 "responses": {
                     "200": {
                         "description": "Password changed successfully"
-                    },
-                    "422": {
-                        "description": "Validation error or incorrect current password"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/current-user/fcm-token": {
+            "post": {
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Update FCM token",
+                "operationId": "44edda6b315cd87fc3af6389ab6fa5ab",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "fcm_token"
+                                ],
+                                "properties": {
+                                    "fcm_token": {
+                                        "type": "string",
+                                        "example": "token_12345"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "FCM token updated successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Remove FCM token",
+                "operationId": "b42bd533ac67d06e7892393dbfc10193",
+                "responses": {
+                    "200": {
+                        "description": "FCM token removed successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/saved-posts": {
+            "get": {
+                "tags": [
+                    "Interactions"
+                ],
+                "summary": "Get saved posts",
+                "operationId": "2b8a8284ce059ad86d76d84581618e4b",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Saved posts retrieved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/posts/{post}/save": {
+            "post": {
+                "tags": [
+                    "Interactions"
+                ],
+                "summary": "Save a post",
+                "operationId": "0ad6fe04bd70ef62dac6902026fa1f73",
+                "parameters": [
+                    {
+                        "name": "post",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Post saved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Interactions"
+                ],
+                "summary": "Unsave a post",
+                "operationId": "9780363a80ce4f6c1f0a3962c1223b62",
+                "parameters": [
+                    {
+                        "name": "post",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Post unsaved successfully"
                     }
                 },
                 "security": [
@@ -1149,20 +1028,16 @@
     },
     "tags": [
         {
-            "name": "Authentication",
-            "description": "Authentication"
-        },
-        {
-            "name": "Categories",
-            "description": "Categories"
+            "name": "Auth",
+            "description": "Auth"
         },
         {
             "name": "Comments",
             "description": "Comments"
         },
         {
-            "name": "Likes",
-            "description": "Likes"
+            "name": "Interactions",
+            "description": "Interactions"
         },
         {
             "name": "Notifications",
@@ -1173,12 +1048,8 @@
             "description": "Posts"
         },
         {
-            "name": "Saved Posts",
-            "description": "Saved Posts"
-        },
-        {
-            "name": "User",
-            "description": "User"
+            "name": "Profile",
+            "description": "Profile"
         }
     ]
 }
