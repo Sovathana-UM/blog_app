@@ -107,6 +107,21 @@ class PostController extends Controller
         return $this->success(null, 'Post deleted successfully.');
     }
 
+    #[OA\Post(path: "/posts/{post}/share", summary: "Share a post", tags: ["Posts"], security: [["bearerAuth" => []]])]
+    #[OA\Parameter(name: "post", in: "path", required: true, schema: new OA\Schema(type: "string"))]
+    #[OA\Response(response: 200, description: "Post shared successfully")]
+    public function share(Post $post)
+    {
+        $post->increment('shares_count');
+        
+        $shareUrl = config('app.url') . '/api/posts/' . $post->id;
+
+        return $this->success([
+            'shares_count' => $post->shares_count,
+            'share_url' => $shareUrl
+        ], 'Post shared successfully.');
+    }
+
     #[OA\Get(path: "/posts/my-posts", summary: "Get current user's posts", tags: ["Posts"], security: [["bearerAuth" => []]])]
     #[OA\Parameter(name: "page", in: "query", description: "Page number", required: false, schema: new OA\Schema(type: "integer"))]
     #[OA\Response(response: 200, description: "My posts retrieved successfully")]

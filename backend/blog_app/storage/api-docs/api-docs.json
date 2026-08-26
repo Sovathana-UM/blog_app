@@ -7,8 +7,8 @@
     },
     "servers": [
         {
-            "url": "http://localhost:8000/api/v1",
-            "description": "Local API V1 Server"
+            "url": "http://localhost:8000/api",
+            "description": "Local API Server"
         }
     ],
     "paths": {
@@ -658,6 +658,35 @@
                 ]
             }
         },
+        "/posts/{post}/share": {
+            "post": {
+                "tags": [
+                    "Posts"
+                ],
+                "summary": "Share a post",
+                "operationId": "80ba06509e310d9efe1e677653a04a90",
+                "parameters": [
+                    {
+                        "name": "post",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Post shared successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/posts/my-posts": {
             "get": {
                 "tags": [
@@ -1019,6 +1048,44 @@
         }
     },
     "components": {
+        "schemas": {
+            "User": {
+                "title": "User",
+                "description": "User model",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "first_name": {
+                        "type": "string"
+                    },
+                    "last_name": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email"
+                    },
+                    "avatar_url": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "bio": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "location": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "is_online": {
+                        "type": "boolean"
+                    }
+                },
+                "type": "object"
+            }
+        },
         "securitySchemes": {
             "bearerAuth": {
                 "type": "http",

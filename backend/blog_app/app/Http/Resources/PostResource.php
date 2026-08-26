@@ -21,6 +21,8 @@ class PostResource extends JsonResource
             'image_urls' => collect($this->images)->map(fn($path) => asset('storage/' . $path))->toArray(),
             'likes_count' => $this->likes_count ?? 0,
             'comments_count' => $this->comments_count ?? 0,
+            'shares_count' => $this->shares_count ?? 0,
+            'share_url' => config('app.url') . '/api/posts/' . $this->id,
             'is_liked' => tap($this->likes?->contains('user_id', auth()->id()), fn() => null) ?? false,
             'is_saved' => tap($this->savedByUsers?->contains('id', auth()->id()), fn() => null) ?? false,
             'author' => new UserResource($this->whenLoaded('user')),

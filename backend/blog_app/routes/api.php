@@ -10,7 +10,6 @@ use App\Http\Controllers\Api\V1\LikeController;
 use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\SavedPostController;
 
-Route::prefix('v1')->group(function () {
     // Health Check
     Route::get('health', function () {
         return response()->json(['status' => 'ok']);
@@ -43,6 +42,9 @@ Route::prefix('v1')->group(function () {
         Route::post('posts/{post}/like', [LikeController::class, 'store']);
         Route::delete('posts/{post}/like', [LikeController::class, 'destroy']);
         
+        // Post Interactions (Share)
+        Route::post('posts/{post}/share', [PostController::class, 'share']);
+        
         // Post Interactions (Save)
         Route::post('posts/{post}/save', [SavedPostController::class, 'store']);
         Route::delete('posts/{post}/save', [SavedPostController::class, 'destroy']);
@@ -60,4 +62,3 @@ Route::prefix('v1')->group(function () {
         Route::patch('notifications/{notification}/read', [NotificationController::class, 'markAsRead']);
         Route::patch('notifications/read-all', [NotificationController::class, 'markAllAsRead']);
     });
-});

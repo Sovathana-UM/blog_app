@@ -10,6 +10,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Cache;
 
 class User extends Authenticatable
 {
@@ -80,5 +81,10 @@ class User extends Authenticatable
     public function savedPosts()
     {
         return $this->belongsToMany(Post::class, 'saved_posts')->withTimestamps();
+    }
+
+    public function isOnline(): bool
+    {
+        return Cache::has('user-is-online-' . $this->id);
     }
 }
