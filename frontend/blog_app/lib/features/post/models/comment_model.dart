@@ -19,12 +19,12 @@ class CommentModel {
 
   factory CommentModel.fromJson(Map<String, dynamic> json) {
     return CommentModel(
-      id: json['id'],
+      id: json['id'] is int ? json['id'] : int.tryParse(json['id'].toString()) ?? 0,
       postId: json['post_id']?.toString() ?? '',
       userId: json['user_id']?.toString() ?? '',
       content: json['content'] ?? '',
-      createdAt: json['created_at'],
-      user: json['user'] != null ? UserModel.fromJson(json['user']) : null,
+      createdAt: json['created_at'] ?? '',
+      user: json['author'] != null ? UserModel.fromJson(json['author']) : null,
     );
   }
 

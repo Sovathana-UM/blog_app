@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../models/post_model.dart';
 import '../controller/comment_controller.dart';
-import '../../../core/network/dio_client.dart';
 
 class PostDetailView extends StatefulWidget {
   final PostModel post;
@@ -44,8 +43,7 @@ class _PostDetailViewState extends State<PostDetailView> {
 
   @override
   Widget build(BuildContext context) {
-    final String baseUrl = DioClient().dio.options.baseUrl.replaceAll('/api', '');
-    final String imageUrl = '$baseUrl/storage/${widget.post.image}';
+    final String? imageUrl = widget.post.imageUrls.isNotEmpty ? widget.post.imageUrls.first : null;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -61,38 +59,26 @@ class _PostDetailViewState extends State<PostDetailView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Image.network(
-                    imageUrl,
-                    width: double.infinity,
-                    height: 250,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        height: 250,
-                        color: Colors.grey[300],
-                        child: const Icon(Icons.image_not_supported, size: 50, color: Colors.grey),
-                      );
-                    },
-                  ),
+                  if (imageUrl != null)
+                    Image.network(
+                      imageUrl,
+                      width: double.infinity,
+                      height: 250,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          height: 250,
+                          color: Colors.grey[300],
+                          child: const Icon(Icons.image_not_supported, size: 50, color: Colors.grey),
+                        );
+                      },
+                    ),
                   Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (widget.post.category != null) ...[
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF2E6FF2).withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              widget.post.category!.name,
-                              style: const TextStyle(color: Color(0xFF2E6FF2), fontSize: 12, fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                        ],
+
                         if (widget.post.title != null) ...[
                           Text(
                             widget.post.title!,
@@ -100,20 +86,20 @@ class _PostDetailViewState extends State<PostDetailView> {
                           ),
                           const SizedBox(height: 12),
                         ],
-                        if (widget.post.user != null)
+                        if (widget.post.author != null)
                           Row(
                             children: [
                               CircleAvatar(
                                 radius: 16,
-                                backgroundImage: widget.post.user!.profilePicture != null
-                                    ? NetworkImage('$baseUrl/storage/${widget.post.user!.profilePicture}')
+                                backgroundImage: widget.post.author!.avatarUrl != null
+                                    ? NetworkImage(widget.post.author!.avatarUrl!)
                                     : null,
-                                child: widget.post.user!.profilePicture == null
-                                    ? Text(widget.post.user!.firstName.substring(0, 1).toUpperCase(), style: const TextStyle(fontSize: 12))
+                                child: widget.post.author!.avatarUrl == null
+                                    ? Text(widget.post.author!.firstName.substring(0, 1).toUpperCase(), style: const TextStyle(fontSize: 12))
                                     : null,
                               ),
                               const SizedBox(width: 8),
-                              Text(widget.post.user!.fullName, style: const TextStyle(fontWeight: FontWeight.w600)),
+                              Text(widget.post.author!.fullName, style: const TextStyle(fontWeight: FontWeight.w600)),
                             ],
                           ),
                         const SizedBox(height: 16),
@@ -147,10 +133,10 @@ class _PostDetailViewState extends State<PostDetailView> {
                               return ListTile(
                                 leading: CircleAvatar(
                                   radius: 16,
-                                  backgroundImage: comment.user?.profilePicture != null
-                                      ? NetworkImage('$baseUrl/storage/${comment.user!.profilePicture}')
+                                  backgroundImage: comment.user?.avatarUrl != null
+                                      ? NetworkImage(comment.user!.avatarUrl!)
                                       : null,
-                                  child: comment.user?.profilePicture == null
+                                  child: comment.user?.avatarUrl == null
                                       ? Text(comment.user?.firstName.substring(0, 1).toUpperCase() ?? 'U')
                                       : null,
                                 ),

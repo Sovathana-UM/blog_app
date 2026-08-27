@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controller/profile_controller.dart';
 import '../widgets/profile_header.dart';
-import '../widgets/stats_card.dart';
+
 import '../widgets/post_card.dart';
 
 class ProfileView extends GetView<ProfileController> {
@@ -17,7 +17,7 @@ class ProfileView extends GetView<ProfileController> {
         centerTitle: true,
       ),
       body: DefaultTabController(
-        length: 3,
+        length: 2,
         child: Obx(() {
           if (controller.isLoading.value) {
             return const Center(child: CircularProgressIndicator());
@@ -52,16 +52,9 @@ class ProfileView extends GetView<ProfileController> {
                   child: ProfileHeader(
                     user: user,
                     onEditProfile: () {
-                      Get.snackbar('Edit Profile', 'Edit profile coming soon!');
+                      Get.toNamed('/edit-profile');
                     },
                   ),
-                ),
-                SliverToBoxAdapter(
-                  child: Obx(() => StatsCard(
-                    totalPosts: controller.userPosts.length,
-                    followers: 128, // Mock
-                    following: 96,  // Mock
-                  )),
                 ),
                 const SliverToBoxAdapter(
                   child: SizedBox(height: 24),
@@ -76,7 +69,6 @@ class ProfileView extends GetView<ProfileController> {
                       indicatorColor: Color(0xFF2E6FF2),
                       tabs: [
                         Tab(text: 'Posts'),
-                        Tab(text: 'Comments'),
                         Tab(text: 'Saved'),
                       ],
                     ),
@@ -87,7 +79,6 @@ class ProfileView extends GetView<ProfileController> {
                   child: TabBarView(
                     children: [
                       _buildPostsTab(),
-                      const Center(child: Text('No Comments Yet')),
                       _buildSavedTab(),
                     ],
                   ),
@@ -129,7 +120,12 @@ class ProfileView extends GetView<ProfileController> {
         itemCount: controller.userPosts.length,
         itemBuilder: (context, index) {
           final post = controller.userPosts[index];
-          return PostCard(post: post);
+          return PostCard(
+            post: post,
+            onLike: () => controller.toggleLike(post),
+            onSave: () => controller.savePost(post),
+            onShare: () => controller.sharePost(post),
+          );
         },
       );
     });
@@ -164,7 +160,12 @@ class ProfileView extends GetView<ProfileController> {
         itemCount: controller.savedPosts.length,
         itemBuilder: (context, index) {
           final post = controller.savedPosts[index];
-          return PostCard(post: post);
+          return PostCard(
+            post: post,
+            onLike: () => controller.toggleLike(post),
+            onSave: () => controller.savePost(post),
+            onShare: () => controller.sharePost(post),
+          );
         },
       );
     });

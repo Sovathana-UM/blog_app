@@ -49,7 +49,7 @@ class PostView extends GetView<PostController> {
           children: [
             // Title Input
             TextField(
-              controller: controller.titleController,
+              controller: controller.contentController,
               decoration: const InputDecoration(
                 hintText: "What's on your mind?",
                 hintStyle: TextStyle(color: Colors.grey, fontSize: 18),
@@ -62,43 +62,60 @@ class PostView extends GetView<PostController> {
 
             // Image Picker Area
             Obx(() {
-              if (controller.selectedImage.value != null) {
-                return Stack(
+              if (controller.selectedImages.isNotEmpty) {
+                return Column(
                   children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.file(
-                        controller.selectedImage.value!,
-                        width: double.infinity,
-                        height: 300,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: GestureDetector(
-                        onTap: controller.clearImage,
-                        child: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: const BoxDecoration(
-                            color: Colors.black54,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.close,
-                            color: Colors.white,
-                            size: 20,
-                          ),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: List.generate(
+                        controller.selectedImages.length,
+                        (index) => Stack(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Image.file(
+                                controller.selectedImages[index],
+                                width: 100,
+                                height: 100,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                            Positioned(
+                              top: 4,
+                              right: 4,
+                              child: GestureDetector(
+                                onTap: () => controller.removeImage(index),
+                                child: Container(
+                                  padding: const EdgeInsets.all(2),
+                                  decoration: const BoxDecoration(
+                                    color: Colors.black54,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.close,
+                                    color: Colors.white,
+                                    size: 16,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextButton.icon(
+                      onPressed: controller.pickImages,
+                      icon: const Icon(Icons.add_photo_alternate),
+                      label: const Text('Add More Photos'),
                     ),
                   ],
                 );
               }
 
               return GestureDetector(
-                onTap: controller.pickImage,
+                onTap: controller.pickImages,
                 child: Container(
                   width: double.infinity,
                   height: 200,
@@ -120,7 +137,7 @@ class PostView extends GetView<PostController> {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        'Add a photo',
+                        'Add photos',
                         style: TextStyle(
                           color: Colors.grey[600],
                           fontSize: 16,

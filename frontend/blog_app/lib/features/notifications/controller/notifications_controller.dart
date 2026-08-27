@@ -2,6 +2,8 @@ import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import '../models/notification_model.dart';
 import '../repository/notification_repository.dart';
+import '../../post/repository/post_repository.dart';
+import '../../post/views/post_detail_view.dart';
 
 class NotificationsController extends GetxController {
   final NotificationRepository _repository = NotificationRepository();
@@ -39,11 +41,10 @@ class NotificationsController extends GetxController {
         if (index != -1) {
           notifications[index] = NotificationModel(
             id: notification.id,
-            userId: notification.userId,
-            title: notification.title,
-            body: notification.body,
             type: notification.type,
-            data: notification.data,
+            message: notification.message,
+            sender: notification.sender,
+            postId: notification.postId,
             isRead: true,
             createdAt: notification.createdAt,
           );
@@ -61,19 +62,34 @@ class NotificationsController extends GetxController {
         final updated = notifications.map((n) {
           return NotificationModel(
             id: n.id,
-            userId: n.userId,
-            title: n.title,
-            body: n.body,
             type: n.type,
-            data: n.data,
+            message: n.message,
+            sender: n.sender,
+            postId: n.postId,
             isRead: true,
             createdAt: n.createdAt,
           );
         }).toList();
-        notifications.assignAll(updated);
+        notifications.assignAll(updated.cast<NotificationModel>());
       }
     } catch (e) {
       debugPrint('Error marking all as read: $e');
+    }
+  }
+
+  Future<void> navigateToPost(String postId) async {
+    Get.dialog(const Center(child: CircularProgressIndicator()), barrierDismissible: false);
+    try {
+      final post = await PostRepository().getPost(postId);
+      Get.back(); // close dialog
+      if (post != null) {
+        Get.to(() => PostDetailView(post: post));
+      } else {
+        Get.snackbar('Error', 'Failed to load post');
+      }
+    } catch (e) {
+      Get.back();
+      Get.snackbar('Error', 'Failed to load post');
     }
   }
 }

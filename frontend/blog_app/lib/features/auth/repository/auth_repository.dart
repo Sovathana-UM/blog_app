@@ -10,7 +10,7 @@ class AuthRepository {
     debugPrint('AuthRepository: Attempting to login with email: $email');
     try {
       final response = await _dio.post(
-        '/login',
+        '/auth/login',
         data: {'email': email, 'password': password},
       );
       debugPrint('AuthRepository: Login successful.');
@@ -38,7 +38,7 @@ class AuthRepository {
     debugPrint('AuthRepository: Attempting to register email: $email');
     try {
       final response = await _dio.post(
-        '/register',
+        '/auth/register',
         data: {
           'first_name': firstName,
           'last_name': lastName,
@@ -67,7 +67,7 @@ class AuthRepository {
   Future<Map<String, dynamic>> logout() async {
     debugPrint('AuthRepository: Attempting to logout...');
     try {
-      final response = await _dio.post('/logout');
+      final response = await _dio.post('/auth/logout');
       debugPrint('AuthRepository: Logout successful.');
       return response.data;
     } on DioException catch (e) {
@@ -88,7 +88,7 @@ class AuthRepository {
   Future<UserModel?> getCurrentUser() async {
     debugPrint('AuthRepository: Fetching current user data...');
     try {
-      final response = await _dio.get('/user');
+      final response = await _dio.get('/current-user');
       if (response.data['success'] == true) {
         debugPrint('AuthRepository: Current user fetched successfully.');
         return UserModel.fromJson(response.data['data']);
@@ -106,7 +106,7 @@ class AuthRepository {
 
   Future<void> updateFcmToken(String token) async {
     try {
-      await _dio.post('/profile/fcm-token', data: {'fcm_token': token});
+      await _dio.post('/current-user/fcm-token', data: {'fcm_token': token});
     } catch (e) {
       debugPrint('AuthRepository: updateFcmToken error: $e');
     }
@@ -114,7 +114,7 @@ class AuthRepository {
 
   Future<Map<String, dynamic>> updateProfile(Map<String, dynamic> data) async {
     try {
-      final response = await _dio.put('/profile', data: data);
+      final response = await _dio.put('/current-user', data: data);
       return response.data;
     } on DioException catch (e) {
       return e.response?.data ?? {'success': false, 'message': 'Unknown error'};
@@ -125,7 +125,7 @@ class AuthRepository {
 
   Future<Map<String, dynamic>> changePassword(String current, String newPass, String confirmPass) async {
     try {
-      final response = await _dio.put('/change-password', data: {
+      final response = await _dio.put('/current-user/password', data: {
         'current_password': current,
         'new_password': newPass,
         'new_password_confirmation': confirmPass,
@@ -147,7 +147,39 @@ class AuthRepository {
         'avatar': await MultipartFile.fromFile(imagePath, filename: fileName),
       });
 
-      final response = await _dio.post('/profile/avatar', data: formData);
+      final response = await _dio.post('/current-user/avatar', data: formData);
+      return response.data;
+    } on DioException catch (e) {
+      return e.response?.data ?? {'success': false, 'message': 'Unknown error'};
+    } catch (e) {
+      return {'success': false, 'message': e.toString()};
+    }
+  }
+
+  Future<Map<String, dynamic>> updateFullProfile({
+    required String firstName,
+    required String lastName,
+    required String bio,
+    required String location,
+    String? avatarPath,
+  }) async {
+    try {
+      final formData = FormData.fromMap({
+        'first_name': firstName,
+        'last_name': lastName,
+        'bio': bio,
+        'location': location,
+      });
+
+      if (avatarPath != null && avatarPath.isNotEmpty) {
+        String fileName = avatarPath.split('/').last;
+        if (!fileName.contains('.')) fileName = '$fileName.jpg';
+        formData.files.add(
+          MapEntry('avatar', await MultipartFile.fromFile(avatarPath, filename: fileName)),
+        );
+      }
+
+      final response = await _dio.post('/current-user', data: formData);
       return response.data;
     } on DioException catch (e) {
       return e.response?.data ?? {'success': false, 'message': 'Unknown error'};

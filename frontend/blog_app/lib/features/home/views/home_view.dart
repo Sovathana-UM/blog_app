@@ -60,6 +60,7 @@ class HomeView extends GetView<HomeController> {
                 post: post,
                 onLike: () => controller.toggleLike(post),
                 onSave: () => controller.savePost(post),
+                onShare: () => controller.sharePost(post),
               );
             },
           ),

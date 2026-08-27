@@ -20,6 +20,7 @@ class NotificationResource extends JsonResource
             'message' => $this->message,
             'sender' => new UserResource($this->whenLoaded('sender')),
             'post_id' => $this->post_id,
+            'post' => $this->whenLoaded('post'),
             'read_at' => $this->read_at ? $this->read_at->toIso8601String() : null,
             'created_at' => $this->created_at->toIso8601String(),
         ];

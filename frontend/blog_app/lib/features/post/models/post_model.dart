@@ -1,17 +1,17 @@
 import '../../auth/models/user_model.dart';
-import 'category_model.dart';
 
 class PostModel {
   final String id;
   final String userId;
   final String? title;
   final String? content;
-  final String image;
+  final List<String> imageUrls;
   final String? createdAt;
-  final UserModel? user;
-  final CategoryModel? category;
+  final UserModel? author;
   final int commentsCount;
   final int likesCount;
+  final int sharesCount;
+  final String? shareUrl;
   final bool isLiked;
   final bool isSaved;
 
@@ -20,12 +20,13 @@ class PostModel {
     required this.userId,
     this.title,
     this.content,
-    required this.image,
+    required this.imageUrls,
     this.createdAt,
-    this.user,
-    this.category,
+    this.author,
     this.commentsCount = 0,
     this.likesCount = 0,
+    this.sharesCount = 0,
+    this.shareUrl,
     this.isLiked = false,
     this.isSaved = false,
   });
@@ -36,12 +37,13 @@ class PostModel {
       userId: json['user_id']?.toString() ?? '',
       title: json['title'],
       content: json['content'],
-      image: json['image'] ?? '',
+      imageUrls: json['image_urls'] != null ? List<String>.from(json['image_urls']) : [],
       createdAt: json['created_at'],
-      user: json['user'] != null ? UserModel.fromJson(json['user']) : null,
-      category: json['category'] != null ? CategoryModel.fromJson(json['category']) : null,
+      author: json['author'] != null ? UserModel.fromJson(json['author']) : null,
       commentsCount: json['comments_count'] ?? 0,
       likesCount: json['likes_count'] ?? 0,
+      sharesCount: json['shares_count'] ?? 0,
+      shareUrl: json['share_url'],
       isLiked: json['is_liked'] == 1 || json['is_liked'] == true,
       isSaved: json['is_saved'] == 1 || json['is_saved'] == true,
     );
@@ -53,14 +55,15 @@ class PostModel {
       'user_id': userId,
       'title': title,
       'content': content,
-      'image': image,
+      'image_urls': imageUrls,
       'created_at': createdAt,
       'comments_count': commentsCount,
       'likes_count': likesCount,
+      'shares_count': sharesCount,
+      'share_url': shareUrl,
       'is_liked': isLiked,
       'is_saved': isSaved,
-      if (user != null) 'user': user!.toJson(),
-      if (category != null) 'category': category!.toJson(),
+      if (author != null) 'author': author!.toJson(),
     };
   }
 }

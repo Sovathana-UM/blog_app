@@ -24,7 +24,7 @@ use App\Http\Controllers\Api\V1\SavedPostController;
         
         // Profile
         Route::get('current-user', [ProfileController::class, 'show']);
-        Route::put('current-user', [ProfileController::class, 'update']);
+        Route::match(['put', 'post'], 'current-user', [ProfileController::class, 'update']);
         Route::post('current-user/avatar', [ProfileController::class, 'uploadAvatar']);
         Route::put('current-user/password', [ProfileController::class, 'changePassword']);
         Route::post('current-user/fcm-token', [ProfileController::class, 'updateFcmToken']);

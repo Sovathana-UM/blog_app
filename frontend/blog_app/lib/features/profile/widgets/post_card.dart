@@ -2,25 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../features/post/models/post_model.dart';
 import '../../../features/post/views/post_detail_view.dart';
-import '../../../core/network/dio_client.dart';
 
 class PostCard extends StatelessWidget {
   final PostModel post;
   final VoidCallback? onLike;
   final VoidCallback? onSave;
+  final VoidCallback? onShare;
 
   const PostCard({
     super.key,
     required this.post,
     this.onLike,
     this.onSave,
+    this.onShare,
   });
 
   @override
   Widget build(BuildContext context) {
-    final String baseUrl = DioClient().dio.options.baseUrl.replaceAll('/api', '');
-    final String imageUrl = '$baseUrl/storage/${post.image}';
-
     return GestureDetector(
       onTap: () {
         Get.to(() => PostDetailView(post: post));
@@ -34,17 +32,35 @@ class PostCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Author Header
-            if (post.user != null)
+            if (post.author != null)
               ListTile(
-                leading: CircleAvatar(
-                  backgroundImage: post.user!.profilePicture != null
-                      ? NetworkImage('$baseUrl/storage/${post.user!.profilePicture}')
-                      : null,
-                  child: post.user!.profilePicture == null
-                      ? Text(post.user!.firstName.substring(0, 1).toUpperCase())
-                      : null,
+                leading: Stack(
+                  children: [
+                    CircleAvatar(
+                      backgroundImage: post.author!.avatarUrl != null
+                          ? NetworkImage(post.author!.avatarUrl!)
+                          : null,
+                      child: post.author!.avatarUrl == null
+                          ? Text(post.author!.firstName.substring(0, 1).toUpperCase())
+                          : null,
+                    ),
+                    if (post.author!.isOnline)
+                      Positioned(
+                        right: 0,
+                        bottom: 0,
+                        child: Container(
+                          width: 12,
+                          height: 12,
+                          decoration: BoxDecoration(
+                            color: Colors.green,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 2),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
-                title: Text(post.user!.fullName, style: const TextStyle(fontWeight: FontWeight.bold)),
+                title: Text(post.author!.fullName, style: const TextStyle(fontWeight: FontWeight.bold)),
                 subtitle: Text(_formatDate(post.createdAt), style: const TextStyle(fontSize: 12)),
                 trailing: IconButton(
                   icon: Icon(
@@ -55,20 +71,28 @@ class PostCard extends StatelessWidget {
                 ),
               ),
             
-            // Image
-            Image.network(
-              imageUrl,
-              height: 180,
-              width: double.infinity,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  height: 180,
-                  color: Colors.grey[300],
-                  child: const Icon(Icons.image_not_supported, size: 50, color: Colors.grey),
-                );
-              },
-            ),
+            // Image Carousel (or first image)
+            if (post.imageUrls.isNotEmpty)
+              SizedBox(
+                height: 180,
+                child: PageView.builder(
+                  itemCount: post.imageUrls.length,
+                  itemBuilder: (context, index) {
+                    return Image.network(
+                      post.imageUrls[index],
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          height: 180,
+                          color: Colors.grey[300],
+                          child: const Icon(Icons.image_not_supported, size: 50, color: Colors.grey),
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
             
             // Content
             Padding(
@@ -76,20 +100,7 @@ class PostCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (post.category != null) ...[
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF2E6FF2).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        post.category!.name,
-                        style: const TextStyle(color: Color(0xFF2E6FF2), fontSize: 12, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                  ],
+
                   if (post.title != null && post.title!.isNotEmpty) ...[
                     Text(
                       post.title!,
@@ -110,27 +121,43 @@ class PostCard extends StatelessWidget {
                     const SizedBox(height: 12),
                   ],
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      InkWell(
-                        onTap: onLike,
-                        child: Row(
-                          children: [
-                            Icon(
-                              post.isLiked ? Icons.favorite : Icons.favorite_border,
-                              size: 20,
-                              color: post.isLiked ? Colors.red : Colors.grey[600],
-                            ),
-                            const SizedBox(width: 4),
-                            Text('${post.likesCount}', style: TextStyle(color: Colors.grey[600])),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 16),
                       Row(
                         children: [
-                          Icon(Icons.comment_outlined, size: 20, color: Colors.grey[600]),
-                          const SizedBox(width: 4),
-                          Text('${post.commentsCount}', style: TextStyle(color: Colors.grey[600])),
+                          InkWell(
+                            onTap: onLike,
+                            child: Row(
+                              children: [
+                                Icon(
+                                  post.isLiked ? Icons.favorite : Icons.favorite_border,
+                                  size: 20,
+                                  color: post.isLiked ? Colors.red : Colors.grey[600],
+                                ),
+                                const SizedBox(width: 4),
+                                Text('${post.likesCount}', style: TextStyle(color: Colors.grey[600])),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Row(
+                            children: [
+                              Icon(Icons.comment_outlined, size: 20, color: Colors.grey[600]),
+                              const SizedBox(width: 4),
+                              Text('${post.commentsCount}', style: TextStyle(color: Colors.grey[600])),
+                            ],
+                          ),
+                          const SizedBox(width: 16),
+                          InkWell(
+                            onTap: onShare,
+                            child: Row(
+                              children: [
+                                Icon(Icons.share_outlined, size: 20, color: Colors.grey[600]),
+                                const SizedBox(width: 4),
+                                Text('${post.sharesCount}', style: TextStyle(color: Colors.grey[600])),
+                              ],
+                            ),
+                          ),
                         ],
                       ),
                     ],

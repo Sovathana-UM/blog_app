@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../../features/auth/models/user_model.dart';
-import '../../../core/network/dio_client.dart';
 
 class ProfileHeader extends StatelessWidget {
   final UserModel user;
@@ -14,9 +13,7 @@ class ProfileHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // We construct the full image URL if it exists
-    final String baseUrl = DioClient().dio.options.baseUrl.replaceAll('/api', '');
-    final String? avatarUrl = user.profilePicture != null ? '$baseUrl/storage/${user.profilePicture}' : null;
+    final String? avatarUrl = user.avatarUrl;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
@@ -25,13 +22,30 @@ class ProfileHeader extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CircleAvatar(
-                radius: 40,
-                backgroundColor: Colors.grey[200],
-                backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl) : null,
-                child: avatarUrl == null
-                    ? const Icon(Icons.person, size: 40, color: Colors.grey)
-                    : null,
+              Stack(
+                children: [
+                  CircleAvatar(
+                    radius: 40,
+                    backgroundColor: Colors.grey[200],
+                    backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl) : null,
+                    child: avatarUrl == null
+                        ? const Icon(Icons.person, size: 40, color: Colors.grey)
+                        : null,
+                  ),
+                  Positioned(
+                    bottom: 2,
+                    right: 2,
+                    child: Container(
+                      width: 18,
+                      height: 18,
+                      decoration: BoxDecoration(
+                        color: user.isOnline ? Colors.green : Colors.grey[400],
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 3),
+                      ),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -96,7 +110,8 @@ class ProfileHeader extends StatelessWidget {
               if (user.dateOfBirth != null && user.dateOfBirth!.isNotEmpty)
                 _buildInfoChip(Icons.cake_outlined, _formatDate(user.dateOfBirth)),
 
-              _buildInfoChip(Icons.calendar_today_outlined, 'Joined ${_formatDate(user.createdAt)}'),
+              if (user.createdAt != null && user.createdAt!.isNotEmpty)
+                _buildInfoChip(Icons.calendar_today_outlined, 'Joined ${_formatDate(user.createdAt)}'),
             ],
           )
         ],

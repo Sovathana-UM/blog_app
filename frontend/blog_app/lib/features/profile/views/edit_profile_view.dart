@@ -1,97 +1,122 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../controller/edit_profile_controller.dart';
 import '../../auth/controller/auth_controller.dart';
 
-class EditProfileView extends GetView<AuthController> {
+class EditProfileView extends GetView<EditProfileController> {
   const EditProfileView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final user = controller.currentUser.value;
-    if (user == null) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Edit Profile')),
-        body: const Center(child: Text('Not logged in')),
-      );
-    }
-
-    final firstNameController = TextEditingController(text: user.firstName);
-    final lastNameController = TextEditingController(text: user.lastName);
-    final bioController = TextEditingController(text: user.bio);
-    final locationController = TextEditingController(text: user.location);
-    final genderController = TextEditingController(text: user.gender);
-    final dobController = TextEditingController(text: user.dateOfBirth);
-
-    final isSaving = false.obs;
-
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('Edit Profile'),
+        elevation: 0,
         actions: [
-          Obx(() => TextButton(
-            onPressed: isSaving.value
-                ? null
-                : () async {
-                    isSaving.value = true;
-                    final success = await controller.updateProfile({
-                      'first_name': firstNameController.text.trim(),
-                      'last_name': lastNameController.text.trim(),
-                      'bio': bioController.text.trim(),
-                      'location': locationController.text.trim(),
-                      'gender': genderController.text.trim(),
-                      'date_of_birth': dobController.text.trim(),
-                    });
-                    isSaving.value = false;
-                    if (success) {
-                      Get.back();
-                      Get.snackbar('Success', 'Profile updated', backgroundColor: Colors.green, colorText: Colors.white);
-                    } else {
-                      Get.snackbar('Error', 'Failed to update profile', backgroundColor: Colors.redAccent, colorText: Colors.white);
-                    }
-                  },
-            child: isSaving.value
-                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                : const Text('Save', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-          )),
+          Obx(
+            () => TextButton(
+              onPressed: controller.isSubmitting.value ? null : controller.submit,
+              child: controller.isSubmitting.value
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text(
+                      'Save',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
+            ),
+          ),
+          const SizedBox(width: 8),
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(24.0),
         child: Column(
           children: [
-            TextField(
-              controller: firstNameController,
-              decoration: const InputDecoration(labelText: 'First Name', border: OutlineInputBorder()),
-            ),
+            _buildAvatarPicker(),
+            const SizedBox(height: 32),
+            _buildTextField('First Name', controller.firstNameController),
             const SizedBox(height: 16),
-            TextField(
-              controller: lastNameController,
-              decoration: const InputDecoration(labelText: 'Last Name', border: OutlineInputBorder()),
-            ),
+            _buildTextField('Last Name', controller.lastNameController),
             const SizedBox(height: 16),
-            TextField(
-              controller: bioController,
-              decoration: const InputDecoration(labelText: 'Bio', border: OutlineInputBorder()),
-              maxLines: 3,
-            ),
+            _buildTextField('Bio', controller.bioController, maxLines: 3),
             const SizedBox(height: 16),
-            TextField(
-              controller: locationController,
-              decoration: const InputDecoration(labelText: 'Location', border: OutlineInputBorder()),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: genderController,
-              decoration: const InputDecoration(labelText: 'Gender', border: OutlineInputBorder()),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: dobController,
-              decoration: const InputDecoration(labelText: 'Date of Birth (YYYY-MM-DD)', border: OutlineInputBorder()),
-            ),
+            _buildTextField('Location', controller.locationController),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildAvatarPicker() {
+    return GestureDetector(
+      onTap: controller.pickAvatar,
+      child: Stack(
+        children: [
+          Obx(() {
+            final selectedAvatar = controller.selectedAvatar.value;
+            final currentUser = Get.find<AuthController>().currentUser.value;
+
+            ImageProvider? imageProvider;
+            if (selectedAvatar != null) {
+              imageProvider = FileImage(selectedAvatar);
+            } else if (currentUser?.avatarUrl != null) {
+              imageProvider = NetworkImage(currentUser!.avatarUrl!);
+            }
+
+            return CircleAvatar(
+              radius: 50,
+              backgroundColor: Colors.grey[200],
+              backgroundImage: imageProvider,
+              child: imageProvider == null
+                  ? Icon(Icons.person, size: 50, color: Colors.grey[400])
+                  : null,
+            );
+          }),
+          Positioned(
+            bottom: 0,
+            right: 0,
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: const BoxDecoration(
+                color: Color(0xFF2E6FF2),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTextField(String label, TextEditingController textController, {int maxLines = 1}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Colors.black87),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: textController,
+          maxLines: maxLines,
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: Colors.grey[100],
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          ),
+        ),
+      ],
     );
   }
 }

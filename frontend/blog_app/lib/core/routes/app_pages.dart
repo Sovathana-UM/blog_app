@@ -12,6 +12,8 @@ import '../../features/post/bindings/post_binding.dart';
 import '../../features/post/views/post_view.dart';
 import '../../features/profile/bindings/profile_binding.dart';
 import '../../features/profile/views/profile_view.dart';
+import '../../features/profile/bindings/edit_profile_binding.dart';
+import '../../features/profile/views/edit_profile_view.dart';
 import '../../features/root/bindings/root_binding.dart';
 import '../../features/root/views/root_view.dart';
 import '../../features/settings/bindings/settings_binding.dart';
@@ -67,6 +69,11 @@ class AppPages {
       name: Routes.PROFILE,
       page: () => const ProfileView(),
       binding: ProfileBinding(),
+    ),
+    GetPage(
+      name: Routes.EDIT_PROFILE,
+      page: () => const EditProfileView(),
+      binding: EditProfileBinding(),
     ),
   ];
 }

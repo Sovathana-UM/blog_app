@@ -10,8 +10,11 @@ class CommentRepository {
     try {
       final response = await _dio.get('/posts/$postId/comments');
       if (response.statusCode == 200) {
-        final List<dynamic> data = response.data['data'] ?? [];
-        return data.map((json) => CommentModel.fromJson(json)).toList();
+        debugPrint('CommentRepository getComments raw data: ${response.data}');
+        final Map<String, dynamic> dataMap = response.data['data'] ?? {};
+        final List<dynamic> commentsData = dataMap['comments'] ?? [];
+        debugPrint('CommentRepository getComments parsed comments length: ${commentsData.length}');
+        return commentsData.map((json) => CommentModel.fromJson(json)).toList();
       }
       return [];
     } catch (e) {
@@ -23,8 +26,8 @@ class CommentRepository {
   Future<bool> addComment(String postId, String content) async {
     try {
       final response = await _dio.post(
-        '/comments',
-        data: {'post_id': postId, 'content': content},
+        '/posts/$postId/comments',
+        data: {'content': content},
       );
       return response.statusCode == 201;
     } catch (e) {

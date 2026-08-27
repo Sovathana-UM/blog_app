@@ -69,13 +69,20 @@ class NotificationsView extends GetView<NotificationsController> {
                 tileColor: notification.isRead ? Colors.white : Colors.blue.withOpacity(0.05),
                 leading: CircleAvatar(
                   backgroundColor: notification.isRead ? Colors.grey[200] : const Color(0xFF2E6FF2).withOpacity(0.2),
-                  child: Icon(
-                    Icons.notifications,
-                    color: notification.isRead ? Colors.grey : const Color(0xFF2E6FF2),
-                  ),
+                  backgroundImage: notification.sender?.avatarUrl != null
+                      ? NetworkImage(notification.sender!.avatarUrl!)
+                      : null,
+                  child: notification.sender?.avatarUrl == null
+                      ? Icon(
+                          notification.type == 'like' ? Icons.favorite : Icons.comment,
+                          color: notification.isRead ? Colors.grey : const Color(0xFF2E6FF2),
+                        )
+                      : null,
                 ),
                 title: Text(
-                  notification.title,
+                  notification.sender != null
+                      ? '${notification.sender!.firstName} ${notification.sender!.lastName}'
+                      : 'Notification',
                   style: TextStyle(
                     fontWeight: notification.isRead ? FontWeight.normal : FontWeight.bold,
                   ),
@@ -84,7 +91,7 @@ class NotificationsView extends GetView<NotificationsController> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 4),
-                    Text(notification.body),
+                    Text(notification.message),
                     const SizedBox(height: 4),
                     Text(
                       _formatDate(notification.createdAt),
@@ -94,7 +101,9 @@ class NotificationsView extends GetView<NotificationsController> {
                 ),
                 onTap: () {
                   controller.markAsRead(notification);
-                  // Handle navigation based on notification.type or notification.data if needed
+                  if (notification.postId != null) {
+                    controller.navigateToPost(notification.postId!);
+                  }
                 },
               );
             },

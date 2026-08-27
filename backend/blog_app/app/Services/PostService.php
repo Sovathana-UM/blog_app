@@ -21,7 +21,7 @@ class PostService
 
         return Post::create([
             'user_id' => $userId,
-            'title' => $data['title'],
+            'title' => $data['title'] ?? null,
             'content' => $data['content'],
             'images' => empty($imagePaths) ? null : $imagePaths,
         ]);
