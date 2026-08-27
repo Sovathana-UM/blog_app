@@ -16,7 +16,7 @@ class Post extends Model
         'title',
         'content',
         'images',
-
+        'shared_post_id',
     ];
 
     protected $casts = [
@@ -43,5 +43,10 @@ class Post extends Model
     public function savedByUsers()
     {
         return $this->belongsToMany(User::class, 'saved_posts')->withTimestamps();
+    }
+
+    public function sharedPost()
+    {
+        return $this->belongsTo(Post::class, 'shared_post_id');
     }
 }

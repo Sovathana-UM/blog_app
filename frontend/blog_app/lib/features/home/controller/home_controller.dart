@@ -1,6 +1,5 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
-import 'package:share_plus/share_plus.dart';
 import '../../post/models/post_model.dart';
 import '../../post/repository/post_repository.dart';
 
@@ -100,36 +99,72 @@ class HomeController extends GetxController {
   }
 
   Future<void> sharePost(PostModel post) async {
-    try {
-      if (post.shareUrl != null) {
-        // Open native share dialog
-        await Share.share('Check out this post: ${post.shareUrl}');
-        
-        // Notify backend to increment count
-        final data = await _postProvider.sharePost(post.id);
-        if (data != null) {
-          final index = posts.indexOf(post);
-          if (index != -1) {
-            posts[index] = PostModel(
-              id: post.id,
-              userId: post.userId,
-              title: post.title,
-              content: post.content,
-              imageUrls: post.imageUrls,
-              createdAt: post.createdAt,
-              author: post.author,
-              commentsCount: post.commentsCount,
-              likesCount: post.likesCount,
-              sharesCount: data['shares_count'] ?? post.sharesCount + 1,
-              shareUrl: post.shareUrl,
-              isLiked: post.isLiked,
-              isSaved: post.isSaved,
-            );
-          }
-        }
-      }
-    } catch (e) {
-      debugPrint('HomeController Error sharing post: $e');
-    }
+    final TextEditingController contentController = TextEditingController();
+
+    Get.dialog(
+      AlertDialog(
+        title: const Text('Share Post'),
+        content: TextField(
+          controller: contentController,
+          decoration: const InputDecoration(
+            hintText: 'Add a comment (optional)',
+            border: OutlineInputBorder(),
+          ),
+          maxLines: 3,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Get.back(); // Close dialog
+              
+              try {
+                // Notify backend to create repost
+                final data = await _postProvider.sharePost(
+                  post.id, 
+                  content: contentController.text.trim()
+                );
+                
+                if (data != null) {
+                  // data is the new PostModel JSON
+                  final newPost = PostModel.fromJson(data);
+                  posts.insert(0, newPost);
+                  
+                  // Update original post's share count in list
+                  final index = posts.indexWhere((p) => p.id == post.id);
+                  if (index != -1) {
+                    posts[index] = PostModel(
+                      id: post.id,
+                      userId: post.userId,
+                      title: post.title,
+                      content: post.content,
+                      imageUrls: post.imageUrls,
+                      createdAt: post.createdAt,
+                      author: post.author,
+                      commentsCount: post.commentsCount,
+                      likesCount: post.likesCount,
+                      sharesCount: post.sharesCount + 1,
+                      shareUrl: post.shareUrl,
+                      isLiked: post.isLiked,
+                      isSaved: post.isSaved,
+                      sharedPost: post.sharedPost,
+                    );
+                  }
+                  
+                  Get.snackbar('Success', 'Post shared successfully!');
+                }
+              } catch (e) {
+                debugPrint('HomeController Error sharing post: $e');
+                Get.snackbar('Error', 'Failed to share post.');
+              }
+            },
+            child: const Text('Share Now'),
+          ),
+        ],
+      ),
+    );
   }
 }

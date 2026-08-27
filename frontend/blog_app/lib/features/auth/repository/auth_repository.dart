@@ -112,6 +112,15 @@ class AuthRepository {
     }
   }
 
+  Future<void> removeFcmToken() async {
+    try {
+      await _dio.delete('/current-user/fcm-token');
+      debugPrint('AuthRepository: FCM token removed from server.');
+    } catch (e) {
+      debugPrint('AuthRepository: removeFcmToken error: $e');
+    }
+  }
+
   Future<Map<String, dynamic>> updateProfile(Map<String, dynamic> data) async {
     try {
       final response = await _dio.put('/current-user', data: data);

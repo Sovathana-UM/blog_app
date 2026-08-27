@@ -262,6 +262,7 @@ class AuthController extends GetxController {
   Future<void> logout() async {
     debugPrint('AuthController: logout() called.');
     try {
+      await _authProvider.removeFcmToken();
       await _authProvider.logout();
     } catch (e) {
       debugPrint('AuthController: Ignored error during API logout: $e');

@@ -117,10 +117,13 @@ class PostRepository {
     }
   }
 
-  Future<Map<String, dynamic>?> sharePost(String postId) async {
+  Future<Map<String, dynamic>?> sharePost(String postId, {String? content}) async {
     try {
-      final response = await _dio.post('/posts/$postId/share');
-      if (response.statusCode == 200 && response.data['success'] == true) {
+      final response = await _dio.post(
+        '/posts/$postId/share',
+        data: content != null && content.isNotEmpty ? {'content': content} : null,
+      );
+      if (response.statusCode == 201 && response.data['success'] == true) {
         return response.data['data'];
       }
       return null;

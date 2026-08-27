@@ -25,6 +25,7 @@ class PostResource extends JsonResource
             'share_url' => config('app.url') . '/api/posts/' . $this->id,
             'is_liked' => tap($this->likes?->contains('user_id', auth()->id()), fn() => null) ?? false,
             'is_saved' => tap($this->savedByUsers?->contains('id', auth()->id()), fn() => null) ?? false,
+            'shared_post' => new PostResource($this->whenLoaded('sharedPost')),
             'author' => new UserResource($this->whenLoaded('user')),
 
             'created_at' => $this->created_at->toIso8601String(),

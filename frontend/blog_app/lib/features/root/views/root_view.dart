@@ -48,12 +48,24 @@ class RootView extends GetView<RootController> {
           unselectedItemColor: const Color(0xFF94A3B8),
           showSelectedLabels: true,
           showUnselectedLabels: true,
-          items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.home_outlined), activeIcon: Icon(Icons.home), label: 'Home'),
-            BottomNavigationBarItem(icon: Icon(Icons.notifications_none), activeIcon: Icon(Icons.notifications), label: 'Notifications'),
-            BottomNavigationBarItem(icon: SizedBox.shrink(), label: ''), // Invisible placeholder for FAB
-            BottomNavigationBarItem(icon: Icon(Icons.settings_outlined), activeIcon: Icon(Icons.settings), label: 'Settings'),
-            BottomNavigationBarItem(icon: Icon(Icons.person_outline), activeIcon: Icon(Icons.person), label: 'Profile'),
+          items: [
+            const BottomNavigationBarItem(icon: Icon(Icons.home_outlined), activeIcon: Icon(Icons.home), label: 'Home'),
+            BottomNavigationBarItem(
+              icon: Obx(() => Badge(
+                isLabelVisible: controller.unreadCount.value > 0,
+                label: Text(controller.unreadCount.value.toString()),
+                child: const Icon(Icons.notifications_none),
+              )),
+              activeIcon: Obx(() => Badge(
+                isLabelVisible: controller.unreadCount.value > 0,
+                label: Text(controller.unreadCount.value.toString()),
+                child: const Icon(Icons.notifications),
+              )),
+              label: 'Notifications',
+            ),
+            const BottomNavigationBarItem(icon: SizedBox.shrink(), label: ''), // Invisible placeholder for FAB
+            const BottomNavigationBarItem(icon: Icon(Icons.settings_outlined), activeIcon: Icon(Icons.settings), label: 'Settings'),
+            const BottomNavigationBarItem(icon: Icon(Icons.person_outline), activeIcon: Icon(Icons.person), label: 'Profile'),
           ],
         ),
       ),

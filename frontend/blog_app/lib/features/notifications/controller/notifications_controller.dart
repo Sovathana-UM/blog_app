@@ -4,32 +4,76 @@ import '../models/notification_model.dart';
 import '../repository/notification_repository.dart';
 import '../../post/repository/post_repository.dart';
 import '../../post/views/post_detail_view.dart';
+import '../../root/controller/root_controller.dart';
 
 class NotificationsController extends GetxController {
   final NotificationRepository _repository = NotificationRepository();
   
   final RxList<NotificationModel> notifications = <NotificationModel>[].obs;
   final RxBool isLoading = true.obs;
+  final RxBool isLoadingMore = false.obs;
   final RxBool hasError = false.obs;
+  
+  final ScrollController scrollController = ScrollController();
+  
+  int _currentPage = 1;
+  bool _hasMoreData = true;
 
   @override
   void onInit() {
     super.onInit();
-    fetchNotifications();
+    scrollController.addListener(_onScroll);
+    fetchNotifications(refresh: true);
   }
 
-  Future<void> fetchNotifications() async {
-    isLoading.value = true;
+  @override
+  void onClose() {
+    scrollController.dispose();
+    super.onClose();
+  }
+
+  void _onScroll() {
+    if (scrollController.position.pixels >= scrollController.position.maxScrollExtent - 200) {
+      loadMore();
+    }
+  }
+
+  Future<void> fetchNotifications({bool refresh = false}) async {
+    if (refresh) {
+      _currentPage = 1;
+      _hasMoreData = true;
+      isLoading.value = true;
+    } else {
+      if (!_hasMoreData || isLoadingMore.value) return;
+      isLoadingMore.value = true;
+    }
+
     hasError.value = false;
     try {
-      final data = await _repository.getNotifications();
-      notifications.assignAll(data);
+      final data = await _repository.getNotifications(page: _currentPage);
+      
+      if (refresh) {
+        notifications.assignAll(data);
+      } else {
+        notifications.addAll(data);
+      }
+
+      if (data.length < 20) {
+        _hasMoreData = false;
+      } else {
+        _currentPage++;
+      }
     } catch (e) {
       debugPrint('Error fetching notifications: $e');
-      hasError.value = true;
+      if (refresh) hasError.value = true;
     } finally {
       isLoading.value = false;
+      isLoadingMore.value = false;
     }
+  }
+
+  void loadMore() {
+    fetchNotifications();
   }
 
   Future<void> markAsRead(NotificationModel notification) async {
@@ -48,6 +92,13 @@ class NotificationsController extends GetxController {
             isRead: true,
             createdAt: notification.createdAt,
           );
+          
+          if (Get.isRegistered<RootController>()) {
+            final rootCtrl = Get.find<RootController>();
+            if (rootCtrl.unreadCount.value > 0) {
+              rootCtrl.unreadCount.value--;
+            }
+          }
         }
       }
     } catch (e) {
@@ -71,6 +122,10 @@ class NotificationsController extends GetxController {
           );
         }).toList();
         notifications.assignAll(updated.cast<NotificationModel>());
+        
+        if (Get.isRegistered<RootController>()) {
+          Get.find<RootController>().unreadCount.value = 0;
+        }
       }
     } catch (e) {
       debugPrint('Error marking all as read: $e');

@@ -5,11 +5,11 @@ import 'package:dio/dio.dart';
 class NotificationRepository {
   final DioClient _dioClient = DioClient();
 
-  Future<List<NotificationModel>> getNotifications() async {
+  Future<List<NotificationModel>> getNotifications({int page = 1}) async {
     try {
-      final response = await _dioClient.dio.get('/notifications');
-      if (response.statusCode == 200) {
-        final List<dynamic> data = response.data['data'];
+      final response = await _dioClient.dio.get('/notifications', queryParameters: {'page': page});
+      if (response.statusCode == 200 && response.data['success'] == true) {
+        final List<dynamic> data = response.data['data']['notifications'] ?? [];
         return data.map((e) => NotificationModel.fromJson(e)).toList();
       }
       return [];
@@ -20,7 +20,7 @@ class NotificationRepository {
 
   Future<bool> markAsRead(String id) async {
     try {
-      final response = await _dioClient.dio.post('/notifications/$id/read');
+      final response = await _dioClient.dio.patch('/notifications/$id/read');
       return response.statusCode == 200;
     } on DioException catch (_) {
       return false;
@@ -29,7 +29,7 @@ class NotificationRepository {
 
   Future<bool> markAllAsRead() async {
     try {
-      final response = await _dioClient.dio.post('/notifications/read-all');
+      final response = await _dioClient.dio.patch('/notifications/read-all');
       return response.statusCode == 200;
     } on DioException catch (_) {
       return false;

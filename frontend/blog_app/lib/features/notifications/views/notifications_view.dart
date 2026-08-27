@@ -15,13 +15,6 @@ class NotificationsView extends GetView<NotificationsController> {
         elevation: 0,
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.done_all),
-            tooltip: 'Mark all as read',
-            onPressed: controller.markAllAsRead,
-          ),
-        ],
       ),
       body: Obx(() {
         if (controller.isLoading.value) {
@@ -60,10 +53,17 @@ class NotificationsView extends GetView<NotificationsController> {
         }
 
         return RefreshIndicator(
-          onRefresh: controller.fetchNotifications,
+          onRefresh: () => controller.fetchNotifications(refresh: true),
           child: ListView.builder(
-            itemCount: controller.notifications.length,
+            controller: controller.scrollController,
+            itemCount: controller.notifications.length + (controller.isLoadingMore.value ? 1 : 0),
             itemBuilder: (context, index) {
+              if (index == controller.notifications.length) {
+                return const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
               final notification = controller.notifications[index];
               return ListTile(
                 tileColor: notification.isRead ? Colors.white : Colors.blue.withOpacity(0.05),
@@ -105,6 +105,16 @@ class NotificationsView extends GetView<NotificationsController> {
                     controller.navigateToPost(notification.postId!);
                   }
                 },
+                trailing: !notification.isRead
+                    ? Container(
+                        width: 10,
+                        height: 10,
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Color(0xFF2E6FF2),
+                        ),
+                      )
+                    : null,
               );
             },
           ),

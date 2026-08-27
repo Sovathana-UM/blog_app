@@ -4,20 +4,31 @@ namespace App\Services;
 
 use App\Models\User;
 
+use Kreait\Firebase\Contract\Messaging;
+use Kreait\Firebase\Messaging\CloudMessage;
+use Kreait\Firebase\Messaging\Notification;
+
 class FcmNotificationService
 {
-    /**
-     * Note: This is a placeholder for the actual FCM integration.
-     * In a production environment, you would use a package like kreait/firebase-php
-     * and dispatch a Queue Job to send the notification to Google's servers.
-     */
+    public function __construct(protected Messaging $messaging)
+    {
+    }
+
     public function sendPushNotification(User $user, string $title, string $body, array $data = []): void
     {
         if (!$user->fcm_token) {
-            return; // User hasn't registered a device
+            return;
         }
 
-        // TODO: Dispatch a Laravel Job that uses kreait/firebase-php to send the notification.
-        // Example: dispatch(new SendFcmJob($user->fcm_token, $title, $body, $data));
+        try {
+            $message = CloudMessage::withTarget('token', $user->fcm_token)
+                ->withNotification(Notification::create($title, $body))
+                ->withData($data);
+
+            $this->messaging->send($message);
+        } catch (\Exception $e) {
+            // Log the error but don't fail the request
+            \Log::error('FCM Error: ' . $e->getMessage());
+        }
     }
 }

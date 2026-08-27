@@ -26,7 +26,7 @@ class PostController extends Controller
     #[OA\Response(response: 200, description: "Posts retrieved successfully")]
     public function index(Request $request)
     {
-        $posts = Post::with(['user:id,first_name,last_name,profile_picture'])
+        $posts = Post::with(['user:id,first_name,last_name,profile_picture', 'sharedPost.user:id,first_name,last_name,profile_picture'])
             ->withCount(['comments', 'likes'])
             ->latest()
             ->paginate(15);
@@ -58,7 +58,7 @@ class PostController extends Controller
     {
         $post = $this->postService->createPost($request->validated(), $request->user()->id);
         
-        $post->load(['user:id,first_name,last_name,profile_picture']);
+        $post->load(['user:id,first_name,last_name,profile_picture', 'sharedPost.user:id,first_name,last_name,profile_picture']);
         
         return $this->success(new PostResource($post), 'Post created successfully.', 201);
     }
@@ -68,7 +68,7 @@ class PostController extends Controller
     #[OA\Response(response: 200, description: "Post retrieved successfully")]
     public function show(Post $post)
     {
-        $post->load(['user:id,first_name,last_name,profile_picture'])
+        $post->load(['user:id,first_name,last_name,profile_picture', 'sharedPost.user:id,first_name,last_name,profile_picture'])
              ->loadCount(['comments', 'likes']);
 
         return $this->success(new PostResource($post), 'Post retrieved successfully.');
@@ -89,7 +89,7 @@ class PostController extends Controller
 
         $updatedPost = $this->postService->updatePost($post, $request->validated());
         
-        $updatedPost->load(['user:id,first_name,last_name,profile_picture'])
+        $updatedPost->load(['user:id,first_name,last_name,profile_picture', 'sharedPost.user:id,first_name,last_name,profile_picture'])
                     ->loadCount(['comments', 'likes']);
 
         return $this->success(new PostResource($updatedPost), 'Post updated successfully.');
@@ -110,16 +110,44 @@ class PostController extends Controller
     #[OA\Post(path: "/posts/{post}/share", summary: "Share a post", tags: ["Posts"], security: [["bearerAuth" => []]])]
     #[OA\Parameter(name: "post", in: "path", required: true, schema: new OA\Schema(type: "string"))]
     #[OA\Response(response: 200, description: "Post shared successfully")]
-    public function share(Post $post)
+    public function share(Request $request, Post $post)
     {
+        $request->validate([
+            'content' => 'nullable|string'
+        ]);
+
         $post->increment('shares_count');
         
-        $shareUrl = config('app.url') . '/api/posts/' . $post->id;
+        /** @var \App\Models\User $currentUser */
+        $currentUser = $request->user();
 
-        return $this->success([
-            'shares_count' => $post->shares_count,
-            'share_url' => $shareUrl
-        ], 'Post shared successfully.');
+        $newPost = Post::create([
+            'user_id' => $currentUser->id,
+            'content' => $request->input('content'),
+            'images' => [],
+            'shared_post_id' => $post->id,
+        ]);
+
+        $newPost->load(['user:id,first_name,last_name,profile_picture', 'sharedPost.user:id,first_name,last_name,profile_picture'])
+                ->loadCount(['comments', 'likes']);
+
+        if ($post->user_id !== $currentUser->id) {
+            $post->user->notifications()->create([
+                'sender_id' => $currentUser->id,
+                'post_id' => $post->id,
+                'type' => 'share',
+                'message' => $currentUser->first_name . ' ' . $currentUser->last_name . ' shared your post.',
+            ]);
+
+            app(\App\Services\FcmNotificationService::class)->sendPushNotification(
+                $post->user,
+                'Post Shared',
+                $currentUser->first_name . ' shared your post.',
+                ['post_id' => $post->id, 'type' => 'share']
+            );
+        }
+
+        return $this->success(new PostResource($newPost), 'Post shared successfully.', 201);
     }
 
     #[OA\Get(path: "/posts/my-posts", summary: "Get current user's posts", tags: ["Posts"], security: [["bearerAuth" => []]])]
@@ -127,7 +155,8 @@ class PostController extends Controller
     #[OA\Response(response: 200, description: "My posts retrieved successfully")]
     public function myPosts(Request $request)
     {
-        $posts = Post::withCount(['comments', 'likes'])
+        $posts = Post::with(['sharedPost.user:id,first_name,last_name,profile_picture'])
+            ->withCount(['comments', 'likes'])
             ->where('user_id', $request->user()->id)
             ->latest()
             ->paginate(15);
@@ -154,7 +183,7 @@ class PostController extends Controller
             return $this->error('Search query parameter "q" is required', null, 400);
         }
 
-        $posts = Post::with(['user:id,first_name,last_name,profile_picture'])
+        $posts = Post::with(['user:id,first_name,last_name,profile_picture', 'sharedPost.user:id,first_name,last_name,profile_picture'])
             ->withCount(['comments', 'likes'])
             ->where('title', 'like', "%{$query}%")
             ->orWhere('content', 'like', "%{$query}%")

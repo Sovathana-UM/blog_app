@@ -14,6 +14,7 @@ class PostModel {
   final String? shareUrl;
   final bool isLiked;
   final bool isSaved;
+  final PostModel? sharedPost;
 
   PostModel({
     required this.id,
@@ -29,6 +30,7 @@ class PostModel {
     this.shareUrl,
     this.isLiked = false,
     this.isSaved = false,
+    this.sharedPost,
   });
 
   factory PostModel.fromJson(Map<String, dynamic> json) {
@@ -46,6 +48,7 @@ class PostModel {
       shareUrl: json['share_url'],
       isLiked: json['is_liked'] == 1 || json['is_liked'] == true,
       isSaved: json['is_saved'] == 1 || json['is_saved'] == true,
+      sharedPost: json['shared_post'] != null ? PostModel.fromJson(json['shared_post']) : null,
     );
   }
 
@@ -64,6 +67,7 @@ class PostModel {
       'is_liked': isLiked,
       'is_saved': isSaved,
       if (author != null) 'author': author!.toJson(),
+      if (sharedPost != null) 'shared_post': sharedPost!.toJson(),
     };
   }
 }

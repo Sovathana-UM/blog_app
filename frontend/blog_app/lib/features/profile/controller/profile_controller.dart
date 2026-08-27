@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../../features/auth/models/user_model.dart';
 import '../../../features/post/models/post_model.dart';
 import '../../../features/post/repository/post_repository.dart';
-import 'package:share_plus/share_plus.dart';
 import '../../auth/controller/auth_controller.dart';
 
 class ProfileController extends GetxController {
@@ -119,23 +118,57 @@ class ProfileController extends GetxController {
   }
 
   Future<void> sharePost(PostModel post) async {
-    try {
-      if (post.shareUrl != null) {
-        await Share.share('Check out this post: ${post.shareUrl}');
-        
-        final data = await _postProvider.sharePost(post.id);
-        if (data != null) {
-          _updatePostInList(userPosts, post, (p) {
-            return _copyPostWith(p, sharesCount: data['shares_count'] ?? p.sharesCount + 1);
-          });
-          _updatePostInList(savedPosts, post, (p) {
-            return _copyPostWith(p, sharesCount: data['shares_count'] ?? p.sharesCount + 1);
-          });
-        }
-      }
-    } catch (e) {
-      debugPrint('ProfileController Error sharing post: $e');
-    }
+    final TextEditingController contentController = TextEditingController();
+
+    Get.dialog(
+      AlertDialog(
+        title: const Text('Share Post'),
+        content: TextField(
+          controller: contentController,
+          decoration: const InputDecoration(
+            hintText: 'Add a comment (optional)',
+            border: OutlineInputBorder(),
+          ),
+          maxLines: 3,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Get.back(); // Close dialog
+              
+              try {
+                final data = await _postProvider.sharePost(
+                  post.id, 
+                  content: contentController.text.trim()
+                );
+                
+                if (data != null) {
+                  final newPost = PostModel.fromJson(data);
+                  userPosts.insert(0, newPost);
+                  
+                  _updatePostInList(userPosts, post, (p) {
+                    return _copyPostWith(p, sharesCount: p.sharesCount + 1);
+                  });
+                  _updatePostInList(savedPosts, post, (p) {
+                    return _copyPostWith(p, sharesCount: p.sharesCount + 1);
+                  });
+                  
+                  Get.snackbar('Success', 'Post shared to your profile!');
+                }
+              } catch (e) {
+                debugPrint('ProfileController Error sharing post: $e');
+                Get.snackbar('Error', 'Failed to share post.');
+              }
+            },
+            child: const Text('Share Now'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _updatePostInList(RxList<PostModel> list, PostModel oldPost, PostModel Function(PostModel) updater) {

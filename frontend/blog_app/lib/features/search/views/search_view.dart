@@ -64,7 +64,12 @@ class SearchView extends GetView<app_search.SearchController> {
           itemCount: controller.searchResults.length,
           itemBuilder: (context, index) {
             final post = controller.searchResults[index];
-            return PostCard(post: post);
+            return PostCard(
+              post: post,
+              onLike: () => controller.toggleLike(post),
+              onSave: () => controller.toggleSave(post),
+              onShare: () => controller.sharePost(post),
+            );
           },
         );
       }),
