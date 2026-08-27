@@ -12,8 +12,16 @@ import '../../features/post/bindings/post_binding.dart';
 import '../../features/post/views/post_view.dart';
 import '../../features/profile/bindings/profile_binding.dart';
 import '../../features/profile/views/profile_view.dart';
+import '../../features/auth/bindings/change_password_binding.dart';
+import '../../features/auth/views/change_password_view.dart';
 import '../../features/profile/bindings/edit_profile_binding.dart';
 import '../../features/profile/views/edit_profile_view.dart';
+import '../../features/post/bindings/edit_post_binding.dart';
+import '../../features/post/views/edit_post_view.dart';
+import '../../features/profile/bindings/my_posts_binding.dart';
+import '../../features/profile/views/my_posts_view.dart';
+import '../../features/profile/bindings/saved_posts_binding.dart';
+import '../../features/profile/views/saved_posts_view.dart';
 import '../../features/root/bindings/root_binding.dart';
 import '../../features/root/views/root_view.dart';
 import '../../features/settings/bindings/settings_binding.dart';
@@ -74,6 +82,26 @@ class AppPages {
       name: Routes.EDIT_PROFILE,
       page: () => const EditProfileView(),
       binding: EditProfileBinding(),
+    ),
+    GetPage(
+      name: Routes.EDIT_POST,
+      page: () => const EditPostView(),
+      binding: EditPostBinding(),
+    ),
+    GetPage(
+      name: Routes.MY_POSTS,
+      page: () => const MyPostsView(),
+      binding: MyPostsBinding(),
+    ),
+    GetPage(
+      name: Routes.SAVED_POSTS,
+      page: () => const SavedPostsView(),
+      binding: SavedPostsBinding(),
+    ),
+    GetPage(
+      name: Routes.CHANGE_PASSWORD,
+      page: () => const ChangePasswordView(),
+      binding: ChangePasswordBinding(),
     ),
   ];
 }

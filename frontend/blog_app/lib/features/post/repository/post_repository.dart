@@ -168,4 +168,27 @@ class PostRepository {
       return false;
     }
   }
+
+  Future<bool> updatePost({required String postId, required String content}) async {
+    try {
+      final response = await _dio.put(
+        '/posts/$postId',
+        data: {'content': content},
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint('PostRepository updatePost error: $e');
+      return false;
+    }
+  }
+
+  Future<bool> deletePost(String postId) async {
+    try {
+      final response = await _dio.delete('/posts/$postId');
+      return response.statusCode == 200 || response.statusCode == 204;
+    } catch (e) {
+      debugPrint('PostRepository deletePost error: $e');
+      return false;
+    }
+  }
 }

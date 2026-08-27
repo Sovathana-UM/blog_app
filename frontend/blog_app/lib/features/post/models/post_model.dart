@@ -14,6 +14,7 @@ class PostModel {
   final String? shareUrl;
   final bool isLiked;
   final bool isSaved;
+  final String? sharedPostId;
   final PostModel? sharedPost;
 
   PostModel({
@@ -30,6 +31,7 @@ class PostModel {
     this.shareUrl,
     this.isLiked = false,
     this.isSaved = false,
+    this.sharedPostId,
     this.sharedPost,
   });
 
@@ -48,6 +50,7 @@ class PostModel {
       shareUrl: json['share_url'],
       isLiked: json['is_liked'] == 1 || json['is_liked'] == true,
       isSaved: json['is_saved'] == 1 || json['is_saved'] == true,
+      sharedPostId: json['shared_post_id']?.toString(),
       sharedPost: json['shared_post'] != null ? PostModel.fromJson(json['shared_post']) : null,
     );
   }
@@ -67,6 +70,7 @@ class PostModel {
       'is_liked': isLiked,
       'is_saved': isSaved,
       if (author != null) 'author': author!.toJson(),
+      if (sharedPostId != null) 'shared_post_id': sharedPostId,
       if (sharedPost != null) 'shared_post': sharedPost!.toJson(),
     };
   }

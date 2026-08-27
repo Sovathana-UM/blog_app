@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../views/edit_profile_view.dart';
+import '../../../core/routes/app_routes.dart';
+import '../../../core/services/theme_service.dart';
 
 class ProfileMenu extends StatelessWidget {
   final VoidCallback onLogout;
@@ -14,16 +15,25 @@ class ProfileMenu extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        _buildMenuItem(Icons.person_outline, 'Edit Profile', onTap: () {
-          Get.to(() => const EditProfileView());
+        _buildMenuItem(Icons.article_outlined, 'My Posts', onTap: () {
+          Get.toNamed(Routes.MY_POSTS);
         }),
-        _buildMenuItem(Icons.article_outlined, 'My Posts'),
-        _buildMenuItem(Icons.bookmark_border, 'Saved Posts'),
-        _buildMenuItem(Icons.notifications_none, 'Notification Settings'),
-        _buildMenuItem(Icons.lock_outline, 'Change Password'),
-        _buildMenuItem(Icons.dark_mode_outlined, 'Dark Mode'),
-        _buildMenuItem(Icons.language, 'Language'),
-        _buildMenuItem(Icons.help_outline, 'Help & Support'),
+        _buildMenuItem(Icons.bookmark_border, 'Saved Posts', onTap: () {
+          Get.toNamed(Routes.SAVED_POSTS);
+        }),
+        _buildMenuItem(Icons.lock_outline, 'Change Password', onTap: () {
+          Get.toNamed(Routes.CHANGE_PASSWORD);
+        }),
+        Obx(() {
+          final isDark = Get.find<ThemeService>().isDarkModeRx.value;
+          return _buildMenuItem(
+            isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+            isDark ? 'Light Mode' : 'Dark Mode',
+            onTap: () {
+              Get.find<ThemeService>().toggleTheme();
+            },
+          );
+        }),
         const Divider(),
         ListTile(
           leading: const Icon(Icons.logout, color: Colors.redAccent),

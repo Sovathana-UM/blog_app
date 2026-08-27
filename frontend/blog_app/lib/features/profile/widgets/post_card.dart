@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../features/post/models/post_model.dart';
 import '../../../features/post/views/post_detail_view.dart';
+import '../../../features/auth/controller/auth_controller.dart';
+import '../../../core/routes/app_routes.dart';
+import '../../../features/post/repository/post_repository.dart';
+import '../../../features/home/controller/home_controller.dart';
+import '../../../features/profile/controller/profile_controller.dart';
 
 class PostCard extends StatelessWidget {
   final PostModel post;
@@ -19,6 +24,11 @@ class PostCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final currentUserId = Get.isRegistered<AuthController>() 
+        ? Get.find<AuthController>().currentUser.value?.id 
+        : null;
+    final isOwner = currentUserId != null && post.author?.id == currentUserId;
+
     return GestureDetector(
       onTap: () {
         Get.to(() => PostDetailView(post: post));
@@ -61,12 +71,56 @@ class PostCard extends StatelessWidget {
                 ),
                 title: Text(post.author!.fullName, style: const TextStyle(fontWeight: FontWeight.bold)),
                 subtitle: Text(_formatDate(post.createdAt), style: const TextStyle(fontSize: 12)),
-                trailing: IconButton(
-                  icon: Icon(
-                    post.isSaved ? Icons.bookmark : Icons.bookmark_border,
-                    color: post.isSaved ? const Color(0xFF2E6FF2) : Colors.grey,
-                  ),
-                  onPressed: onSave,
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: Icon(
+                        post.isSaved ? Icons.bookmark : Icons.bookmark_border,
+                        color: post.isSaved ? const Color(0xFF2E6FF2) : Colors.grey,
+                      ),
+                      onPressed: onSave,
+                    ),
+                    if (isOwner)
+                      PopupMenuButton<String>(
+                        icon: const Icon(Icons.more_horiz, color: Colors.grey),
+                        onSelected: (value) async {
+                          if (value == 'edit') {
+                            Get.toNamed(Routes.EDIT_POST, arguments: post);
+                          } else if (value == 'delete') {
+                            Get.defaultDialog(
+                              title: 'Delete Post',
+                              middleText: 'Are you sure you want to delete this post?',
+                              textConfirm: 'Delete',
+                              confirmTextColor: Colors.white,
+                              buttonColor: Colors.redAccent,
+                              onConfirm: () async {
+                                Get.back(); // close dialog
+                                final success = await PostRepository().deletePost(post.id.toString());
+                                if (success) {
+                                  Get.snackbar('Success', 'Post deleted', backgroundColor: Colors.green, colorText: Colors.white);
+                                  if (Get.isRegistered<HomeController>()) Get.find<HomeController>().loadPosts();
+                                  if (Get.isRegistered<ProfileController>()) Get.find<ProfileController>().getUserPosts();
+                                } else {
+                                  Get.snackbar('Error', 'Failed to delete post', backgroundColor: Colors.redAccent, colorText: Colors.white);
+                                }
+                              },
+                              textCancel: 'Cancel',
+                            );
+                          }
+                        },
+                        itemBuilder: (context) => [
+                          const PopupMenuItem(
+                            value: 'edit',
+                            child: Text('Edit'),
+                          ),
+                          const PopupMenuItem(
+                            value: 'delete',
+                            child: Text('Delete', style: TextStyle(color: Colors.red)),
+                          ),
+                        ],
+                      ),
+                  ],
                 ),
               ),
             
@@ -121,6 +175,9 @@ class PostCard extends StatelessWidget {
                   ],
                   if (post.sharedPost != null) ...[
                     _buildEmbeddedPost(post.sharedPost!),
+                    const SizedBox(height: 12),
+                  ] else if (post.sharedPostId != null) ...[
+                    _buildUnavailablePost(),
                     const SizedBox(height: 12),
                   ],
                   Row(
@@ -248,6 +305,42 @@ class PostCard extends StatelessWidget {
                 ],
               ),
             ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUnavailablePost() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        border: Border.all(color: Colors.grey[300]!),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Icon(Icons.lock_outline, color: Colors.grey[500], size: 32),
+          const SizedBox(height: 8),
+          Text(
+            'This content isn\'t available right now',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.grey[800],
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'When this happens, it\'s usually because the owner only shared it with a small group of people, changed who can see it or it\'s been deleted.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.grey[600],
+              fontSize: 12,
+            ),
+          ),
         ],
       ),
     );

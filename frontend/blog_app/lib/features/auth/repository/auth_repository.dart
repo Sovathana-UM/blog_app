@@ -136,8 +136,8 @@ class AuthRepository {
     try {
       final response = await _dio.put('/current-user/password', data: {
         'current_password': current,
-        'new_password': newPass,
-        'new_password_confirmation': confirmPass,
+        'password': newPass,
+        'password_confirmation': confirmPass,
       });
       return response.data;
     } on DioException catch (e) {

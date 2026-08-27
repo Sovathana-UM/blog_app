@@ -10,6 +10,10 @@ abstract class Routes {
   static const SETTINGS = _Paths.SETTINGS;
   static const PROFILE = _Paths.PROFILE;
   static const EDIT_PROFILE = _Paths.EDIT_PROFILE;
+  static const EDIT_POST = _Paths.EDIT_POST;
+  static const MY_POSTS = _Paths.MY_POSTS;
+  static const SAVED_POSTS = _Paths.SAVED_POSTS;
+  static const CHANGE_PASSWORD = _Paths.CHANGE_PASSWORD;
 }
 
 abstract class _Paths {
@@ -24,4 +28,8 @@ abstract class _Paths {
   static const SETTINGS = '/settings';
   static const PROFILE = '/profile';
   static const EDIT_PROFILE = '/edit-profile';
+  static const EDIT_POST = '/edit-post';
+  static const MY_POSTS = '/my-posts';
+  static const SAVED_POSTS = '/saved-posts';
+  static const CHANGE_PASSWORD = '/change-password';
 }
