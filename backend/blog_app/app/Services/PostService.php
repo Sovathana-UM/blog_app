@@ -3,10 +3,12 @@
 namespace App\Services;
 
 use App\Models\Post;
+use App\Models\User;
 use Illuminate\Support\Facades\Storage;
 
 class PostService
 {
+    public function __construct(private FcmNotificationService $fcm) {}
     /**
      * Create a new post.
      */
@@ -67,5 +69,43 @@ class PostService
         }
 
         $post->delete();
+    }
+
+    /**
+     * Share a post: increment counter, create a new share-post, and notify the owner.
+     */
+    public function sharePost(Post $post, User $sharingUser, ?string $content): Post
+    {
+        $post->increment('shares_count');
+
+        $newPost = Post::create([
+            'user_id'        => $sharingUser->id,
+            'content'        => $content,
+            'images'         => [],
+            'shared_post_id' => $post->id,
+        ]);
+
+        if ($post->user_id !== $sharingUser->id) {
+            $post->user->notifications()->create([
+                'sender_id' => $sharingUser->id,
+                'post_id'   => $post->id,
+                'type'      => 'share',
+                'message'   => "{$sharingUser->first_name} {$sharingUser->last_name} shared your post.",
+            ]);
+
+            $this->fcm->sendPushNotification(
+                $post->user,
+                'Post Shared',
+                "{$sharingUser->first_name} shared your post.",
+                ['post_id' => $post->id, 'type' => 'share']
+            );
+        }
+
+        $newPost->load([
+            'user:id,first_name,last_name,profile_picture',
+            'sharedPost.user:id,first_name,last_name,profile_picture',
+        ])->loadCount(['comments', 'likes']);
+
+        return $newPost;
     }
 }

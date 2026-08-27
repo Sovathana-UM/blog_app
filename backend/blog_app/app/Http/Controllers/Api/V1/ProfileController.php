@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ChangePasswordRequest;
+use App\Http\Requests\UpdateFcmTokenRequest;
 use App\Http\Requests\UpdateProfileRequest;
 use App\Http\Resources\UserResource;
 use App\Services\ProfileService;
@@ -86,12 +87,10 @@ class ProfileController extends Controller
         ]
     ))]
     #[OA\Response(response: 200, description: "FCM token updated successfully")]
-    public function updateFcmToken(Request $request)
+    public function updateFcmToken(UpdateFcmTokenRequest $request)
     {
-        $request->validate(['fcm_token' => 'required|string']);
-        
         $user = $request->user();
-        $user->fcm_token = $request->fcm_token;
+        $user->fcm_token = $request->validated('fcm_token');
         $user->save();
 
         return $this->success(null, 'FCM token updated successfully.');

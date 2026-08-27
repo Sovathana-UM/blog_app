@@ -24,15 +24,11 @@ class SavedPostController extends Controller
                       ->with(['user:id,first_name,last_name,profile_picture'])
                       ->withCount(['comments', 'likes'])
                       ->latest('saved_posts.created_at')
-                      ->paginate(15);
+                      ->paginate(10);
                       
         return $this->success([
             'posts' => PostResource::collection($posts->items()),
-            'meta' => [
-                'current_page' => $posts->currentPage(),
-                'last_page' => $posts->lastPage(),
-                'total' => $posts->total(),
-            ]
+            'meta'  => $this->paginationMeta($posts),
         ], 'Saved posts retrieved successfully.');
     }
 

@@ -295,7 +295,7 @@
                 "tags": [
                     "Interactions"
                 ],
-                "summary": "Get users who liked a post",
+                "summary": "Get likes for a post",
                 "operationId": "bd0dc70dfeda300e39f7bb5ebaeeac33",
                 "parameters": [
                     {
@@ -318,7 +318,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Users who liked retrieved successfully"
+                        "description": "Likes retrieved successfully"
                     }
                 },
                 "security": [
@@ -522,7 +522,6 @@
                         "multipart/form-data": {
                             "schema": {
                                 "required": [
-                                    "title",
                                     "content"
                                 ],
                                 "properties": {
@@ -676,7 +675,7 @@
                     }
                 ],
                 "responses": {
-                    "200": {
+                    "201": {
                         "description": "Post shared successfully"
                     }
                 },

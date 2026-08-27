@@ -42,4 +42,18 @@ trait ApiResponse
 
         return response()->json($response, $code);
     }
+
+    /**
+     * Extract standard pagination metadata from a paginator.
+     *
+     * @param \Illuminate\Pagination\LengthAwarePaginator $paginator
+     */
+    protected function paginationMeta($paginator): array
+    {
+        return [
+            'current_page' => $paginator->currentPage(),
+            'last_page'    => $paginator->lastPage(),
+            'total'        => $paginator->total(),
+        ];
+    }
 }

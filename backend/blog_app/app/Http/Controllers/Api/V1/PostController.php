@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\SharePostRequest;
 use App\Http\Requests\StorePostRequest;
 use App\Http\Requests\UpdatePostRequest;
 use App\Http\Resources\PostResource;
@@ -17,27 +18,18 @@ class PostController extends Controller
 {
     use ApiResponse;
 
-    public function __construct(private PostService $postService)
-    {
-    }
+    public function __construct(private PostService $postService) {}
 
     #[OA\Get(path: "/posts", summary: "Get paginated list of posts", tags: ["Posts"], security: [["bearerAuth" => []]])]
     #[OA\Parameter(name: "page", in: "query", description: "Page number", required: false, schema: new OA\Schema(type: "integer"))]
     #[OA\Response(response: 200, description: "Posts retrieved successfully")]
     public function index(Request $request)
     {
-        $posts = Post::with(['user:id,first_name,last_name,profile_picture', 'sharedPost.user:id,first_name,last_name,profile_picture'])
-            ->withCount(['comments', 'likes'])
-            ->latest()
-            ->paginate(15);
-            
+        $posts = Post::forFeed()->latest()->paginate(10);
+
         return $this->success([
             'posts' => PostResource::collection($posts->items()),
-            'meta' => [
-                'current_page' => $posts->currentPage(),
-                'last_page' => $posts->lastPage(),
-                'total' => $posts->total(),
-            ]
+            'meta'  => $this->paginationMeta($posts),
         ], 'Posts retrieved successfully.');
     }
 
@@ -45,7 +37,7 @@ class PostController extends Controller
     #[OA\RequestBody(required: true, content: new OA\MediaType(
         mediaType: "multipart/form-data",
         schema: new OA\Schema(
-            required: ["title", "content"],
+            required: ["content"],
             properties: [
                 new OA\Property(property: "title", type: "string"),
                 new OA\Property(property: "content", type: "string"),
@@ -57,9 +49,11 @@ class PostController extends Controller
     public function store(StorePostRequest $request)
     {
         $post = $this->postService->createPost($request->validated(), $request->user()->id);
-        
-        $post->load(['user:id,first_name,last_name,profile_picture', 'sharedPost.user:id,first_name,last_name,profile_picture']);
-        
+        $post->load([
+            'user:id,first_name,last_name,profile_picture',
+            'sharedPost.user:id,first_name,last_name,profile_picture',
+        ]);
+
         return $this->success(new PostResource($post), 'Post created successfully.', 201);
     }
 
@@ -68,8 +62,7 @@ class PostController extends Controller
     #[OA\Response(response: 200, description: "Post retrieved successfully")]
     public function show(Post $post)
     {
-        $post->load(['user:id,first_name,last_name,profile_picture', 'sharedPost.user:id,first_name,last_name,profile_picture'])
-             ->loadCount(['comments', 'likes']);
+        $post = Post::forFeed()->findOrFail($post->id);
 
         return $this->success(new PostResource($post), 'Post retrieved successfully.');
     }
@@ -88,9 +81,7 @@ class PostController extends Controller
         Gate::authorize('update', $post);
 
         $updatedPost = $this->postService->updatePost($post, $request->validated());
-        
-        $updatedPost->load(['user:id,first_name,last_name,profile_picture', 'sharedPost.user:id,first_name,last_name,profile_picture'])
-                    ->loadCount(['comments', 'likes']);
+        $updatedPost = Post::forFeed()->findOrFail($updatedPost->id);
 
         return $this->success(new PostResource($updatedPost), 'Post updated successfully.');
     }
@@ -101,7 +92,6 @@ class PostController extends Controller
     public function destroy(Post $post)
     {
         Gate::authorize('delete', $post);
-
         $this->postService->deletePost($post);
 
         return $this->success(null, 'Post deleted successfully.');
@@ -109,43 +99,10 @@ class PostController extends Controller
 
     #[OA\Post(path: "/posts/{post}/share", summary: "Share a post", tags: ["Posts"], security: [["bearerAuth" => []]])]
     #[OA\Parameter(name: "post", in: "path", required: true, schema: new OA\Schema(type: "string"))]
-    #[OA\Response(response: 200, description: "Post shared successfully")]
-    public function share(Request $request, Post $post)
+    #[OA\Response(response: 201, description: "Post shared successfully")]
+    public function share(SharePostRequest $request, Post $post)
     {
-        $request->validate([
-            'content' => 'nullable|string'
-        ]);
-
-        $post->increment('shares_count');
-        
-        /** @var \App\Models\User $currentUser */
-        $currentUser = $request->user();
-
-        $newPost = Post::create([
-            'user_id' => $currentUser->id,
-            'content' => $request->input('content'),
-            'images' => [],
-            'shared_post_id' => $post->id,
-        ]);
-
-        $newPost->load(['user:id,first_name,last_name,profile_picture', 'sharedPost.user:id,first_name,last_name,profile_picture'])
-                ->loadCount(['comments', 'likes']);
-
-        if ($post->user_id !== $currentUser->id) {
-            $post->user->notifications()->create([
-                'sender_id' => $currentUser->id,
-                'post_id' => $post->id,
-                'type' => 'share',
-                'message' => $currentUser->first_name . ' ' . $currentUser->last_name . ' shared your post.',
-            ]);
-
-            app(\App\Services\FcmNotificationService::class)->sendPushNotification(
-                $post->user,
-                'Post Shared',
-                $currentUser->first_name . ' shared your post.',
-                ['post_id' => $post->id, 'type' => 'share']
-            );
-        }
+        $newPost = $this->postService->sharePost($post, $request->user(), $request->validated('content'));
 
         return $this->success(new PostResource($newPost), 'Post shared successfully.', 201);
     }
@@ -155,19 +112,14 @@ class PostController extends Controller
     #[OA\Response(response: 200, description: "My posts retrieved successfully")]
     public function myPosts(Request $request)
     {
-        $posts = Post::with(['sharedPost.user:id,first_name,last_name,profile_picture'])
-            ->withCount(['comments', 'likes'])
+        $posts = Post::forFeed()
             ->where('user_id', $request->user()->id)
             ->latest()
-            ->paginate(15);
-            
+            ->paginate(10);
+
         return $this->success([
             'posts' => PostResource::collection($posts->items()),
-            'meta' => [
-                'current_page' => $posts->currentPage(),
-                'last_page' => $posts->lastPage(),
-                'total' => $posts->total(),
-            ]
+            'meta'  => $this->paginationMeta($posts),
         ], 'My posts retrieved successfully.');
     }
 
@@ -177,26 +129,23 @@ class PostController extends Controller
     #[OA\Response(response: 200, description: "Search results retrieved successfully")]
     public function search(Request $request)
     {
-        $query = $request->query('q');
+        $query = trim((string) $request->query('q'));
 
         if (!$query) {
             return $this->error('Search query parameter "q" is required', null, 400);
         }
 
-        $posts = Post::with(['user:id,first_name,last_name,profile_picture', 'sharedPost.user:id,first_name,last_name,profile_picture'])
-            ->withCount(['comments', 'likes'])
-            ->where('title', 'like', "%{$query}%")
-            ->orWhere('content', 'like', "%{$query}%")
+        $posts = Post::forFeed()
+            ->where(function ($q) use ($query) {
+                $q->where('title', 'like', "%{$query}%")
+                  ->orWhere('content', 'like', "%{$query}%");
+            })
             ->latest()
-            ->paginate(15);
-            
+            ->paginate(10);
+
         return $this->success([
             'posts' => PostResource::collection($posts->items()),
-            'meta' => [
-                'current_page' => $posts->currentPage(),
-                'last_page' => $posts->lastPage(),
-                'total' => $posts->total(),
-            ]
+            'meta'  => $this->paginationMeta($posts),
         ], 'Search results retrieved successfully.');
     }
 }

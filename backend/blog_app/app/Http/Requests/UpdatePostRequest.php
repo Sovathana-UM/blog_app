@@ -26,7 +26,7 @@ class UpdatePostRequest extends FormRequest
             'content' => 'sometimes|string',
 
             'images' => 'nullable|array',
-            'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:5120',
+            'images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:5120',
         ];
     }
 }

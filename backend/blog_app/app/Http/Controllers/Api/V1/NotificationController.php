@@ -7,6 +7,7 @@ use App\Http\Resources\NotificationResource;
 use App\Models\Notification;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use OpenApi\Attributes as OA;
 
 class NotificationController extends Controller
@@ -22,15 +23,11 @@ class NotificationController extends Controller
                                  ->notifications()
                                  ->with(['sender:id,first_name,last_name,profile_picture', 'post:id,content'])
                                  ->latest()
-                                 ->paginate(20);
+                                 ->paginate(10);
 
         return $this->success([
             'notifications' => NotificationResource::collection($notifications->items()),
-            'meta' => [
-                'current_page' => $notifications->currentPage(),
-                'last_page' => $notifications->lastPage(),
-                'total' => $notifications->total(),
-            ]
+            'meta'          => $this->paginationMeta($notifications),
         ], 'Notifications retrieved successfully.');
     }
 
@@ -51,9 +48,7 @@ class NotificationController extends Controller
     #[OA\Response(response: 200, description: "Notification marked as read")]
     public function markAsRead(Request $request, Notification $notification)
     {
-        if ($notification->user_id !== $request->user()->id) {
-            return $this->error('Unauthorized', null, 403);
-        }
+        Gate::authorize('update', $notification);
 
         if (is_null($notification->read_at)) {
             $notification->update(['read_at' => now()]);

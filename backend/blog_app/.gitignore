@@ -22,3 +22,17 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Firebase credentials (NEVER commit this)
+/storage/app/firebase_credentials.json
+
+# User-uploaded media
+/storage/app/public/posts/
+/storage/app/public/avatars/
+
+# Laravel caches
+/bootstrap/cache/*.php
+
+# Test artifacts
+/.phpunit.cache
+/coverage/
