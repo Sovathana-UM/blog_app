@@ -93,7 +93,9 @@ class AuthRepository {
         debugPrint('AuthRepository: Current user fetched successfully.');
         return UserModel.fromJson(response.data['data']);
       }
-      debugPrint('AuthRepository: Fetch current user failed (success = false).');
+      debugPrint(
+        'AuthRepository: Fetch current user failed (success = false).',
+      );
       return null;
     } on DioException catch (e) {
       debugPrint('AuthRepository: Fetch user DioException: ${e.message}');
@@ -132,13 +134,20 @@ class AuthRepository {
     }
   }
 
-  Future<Map<String, dynamic>> changePassword(String current, String newPass, String confirmPass) async {
+  Future<Map<String, dynamic>> changePassword(
+    String current,
+    String newPass,
+    String confirmPass,
+  ) async {
     try {
-      final response = await _dio.put('/current-user/password', data: {
-        'current_password': current,
-        'password': newPass,
-        'password_confirmation': confirmPass,
-      });
+      final response = await _dio.put(
+        '/current-user/password',
+        data: {
+          'current_password': current,
+          'password': newPass,
+          'password_confirmation': confirmPass,
+        },
+      );
       return response.data;
     } on DioException catch (e) {
       return e.response?.data ?? {'success': false, 'message': 'Unknown error'};
@@ -184,7 +193,10 @@ class AuthRepository {
         String fileName = avatarPath.split('/').last;
         if (!fileName.contains('.')) fileName = '$fileName.jpg';
         formData.files.add(
-          MapEntry('avatar', await MultipartFile.fromFile(avatarPath, filename: fileName)),
+          MapEntry(
+            'avatar',
+            await MultipartFile.fromFile(avatarPath, filename: fileName),
+          ),
         );
       }
 

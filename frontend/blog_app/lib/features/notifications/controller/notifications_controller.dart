@@ -8,14 +8,16 @@ import '../../root/controller/root_controller.dart';
 
 class NotificationsController extends GetxController {
   final NotificationRepository _repository = NotificationRepository();
-  
+
   final RxList<NotificationModel> notifications = <NotificationModel>[].obs;
   final RxBool isLoading = true.obs;
   final RxBool isLoadingMore = false.obs;
   final RxBool hasError = false.obs;
-  
+
   final ScrollController scrollController = ScrollController();
-  
+  final GlobalKey<RefreshIndicatorState> refreshIndicatorKey =
+      GlobalKey<RefreshIndicatorState>();
+
   int _currentPage = 1;
   bool _hasMoreData = true;
 
@@ -33,16 +35,22 @@ class NotificationsController extends GetxController {
   }
 
   void _onScroll() {
-    if (scrollController.position.pixels >= scrollController.position.maxScrollExtent - 200) {
+    if (scrollController.position.pixels >=
+        scrollController.position.maxScrollExtent - 200) {
       loadMore();
     }
   }
 
-  Future<void> fetchNotifications({bool refresh = false}) async {
+  Future<void> fetchNotifications({
+    bool refresh = false,
+    bool background = false,
+  }) async {
     if (refresh) {
       _currentPage = 1;
       _hasMoreData = true;
-      isLoading.value = true;
+      if (!background || notifications.isEmpty) {
+        isLoading.value = true;
+      }
     } else {
       if (!_hasMoreData || isLoadingMore.value) return;
       isLoadingMore.value = true;
@@ -51,14 +59,14 @@ class NotificationsController extends GetxController {
     hasError.value = false;
     try {
       final data = await _repository.getNotifications(page: _currentPage);
-      
+
       if (refresh) {
         notifications.assignAll(data);
       } else {
         notifications.addAll(data);
       }
 
-      if (data.length < 20) {
+      if (data.length < 10) {
         _hasMoreData = false;
       } else {
         _currentPage++;
@@ -96,7 +104,7 @@ class NotificationsController extends GetxController {
             createdAt: notification.createdAt,
           );
           notifications.refresh();
-          
+
           if (Get.isRegistered<RootController>()) {
             final rootCtrl = Get.find<RootController>();
             if (rootCtrl.unreadCount.value > 0) {
@@ -126,7 +134,7 @@ class NotificationsController extends GetxController {
           );
         }).toList();
         notifications.assignAll(updated.cast<NotificationModel>());
-        
+
         if (Get.isRegistered<RootController>()) {
           Get.find<RootController>().unreadCount.value = 0;
         }
@@ -137,7 +145,10 @@ class NotificationsController extends GetxController {
   }
 
   Future<void> navigateToPost(String postId) async {
-    Get.dialog(const Center(child: CircularProgressIndicator()), barrierDismissible: false);
+    Get.dialog(
+      const Center(child: CircularProgressIndicator()),
+      barrierDismissible: false,
+    );
     try {
       final post = await PostRepository().getPost(postId);
       Get.back(); // close dialog

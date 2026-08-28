@@ -9,15 +9,12 @@ class SavedPostsView extends GetView<SavedPostsController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Saved Posts'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('Saved Posts'), centerTitle: false),
       body: Obx(() {
         if (controller.isLoading.value) {
           return const Center(child: CircularProgressIndicator());
         }
-        
+
         if (controller.isError.value) {
           return Center(
             child: Column(

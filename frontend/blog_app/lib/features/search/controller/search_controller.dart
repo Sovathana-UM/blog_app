@@ -8,7 +8,7 @@ import 'package:dio/dio.dart';
 class SearchController extends GetxController {
   final DioClient _dioClient = DioClient();
   final PostRepository _postProvider = PostRepository();
-  
+
   final searchController = TextEditingController();
   final RxList<PostModel> searchResults = <PostModel>[].obs;
   final RxBool isLoading = false.obs;
@@ -29,16 +29,26 @@ class SearchController extends GetxController {
 
     isLoading.value = true;
     hasSearched.value = true;
-    
+
     try {
-      final response = await _dioClient.dio.get('/posts/search', queryParameters: {'q': query});
+      final response = await _dioClient.dio.get(
+        '/posts/search',
+        queryParameters: {'q': query},
+      );
       if (response.statusCode == 200) {
         final List<dynamic> data = response.data['data']['posts'] ?? [];
-        searchResults.assignAll(data.map((e) => PostModel.fromJson(e)).toList());
+        searchResults.assignAll(
+          data.map((e) => PostModel.fromJson(e)).toList(),
+        );
       }
     } on DioException catch (e) {
       debugPrint('Search error: $e');
-      Get.snackbar('Error', 'Failed to search posts', backgroundColor: Colors.redAccent, colorText: Colors.white);
+      Get.snackbar(
+        'Error',
+        'Failed to search posts',
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
     } finally {
       isLoading.value = false;
     }
@@ -51,7 +61,8 @@ class SearchController extends GetxController {
     }
   }
 
-  PostModel _copyPostWith(PostModel post, {
+  PostModel _copyPostWith(
+    PostModel post, {
     bool? isLiked,
     int? likesCount,
     bool? isSaved,
@@ -77,17 +88,17 @@ class SearchController extends GetxController {
 
   Future<void> toggleLike(PostModel post) async {
     try {
-      final success = post.isLiked 
+      final success = post.isLiked
           ? await _postProvider.unlikePost(post.id)
           : await _postProvider.likePost(post.id);
-          
+
       if (success) {
         final newIsLiked = !post.isLiked;
         _updatePost(post, (p) {
           return _copyPostWith(
-            p, 
-            isLiked: newIsLiked, 
-            likesCount: newIsLiked ? p.likesCount + 1 : p.likesCount - 1
+            p,
+            isLiked: newIsLiked,
+            likesCount: newIsLiked ? p.likesCount + 1 : p.likesCount - 1,
           );
         });
       }
@@ -101,7 +112,7 @@ class SearchController extends GetxController {
       final success = post.isSaved
           ? await _postProvider.unsavePost(post.id)
           : await _postProvider.savePost(post.id);
-          
+
       if (success) {
         _updatePost(post, (p) {
           return _copyPostWith(p, isSaved: !post.isSaved);
@@ -127,19 +138,16 @@ class SearchController extends GetxController {
           maxLines: 3,
         ),
         actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('Cancel'),
-          ),
+          TextButton(onPressed: () => Get.back(), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () async {
               Get.back();
               try {
                 final data = await _postProvider.sharePost(
-                  post.id, 
-                  content: contentController.text.trim()
+                  post.id,
+                  content: contentController.text.trim(),
                 );
-                
+
                 if (data != null) {
                   _updatePost(post, (p) {
                     return _copyPostWith(p, sharesCount: p.sharesCount + 1);

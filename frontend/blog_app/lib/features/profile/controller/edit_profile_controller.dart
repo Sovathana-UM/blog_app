@@ -52,13 +52,24 @@ class EditProfileController extends GetxController {
       }
     } catch (e) {
       debugPrint('EditProfileController pickAvatar error: $e');
-      Get.snackbar('Error', 'Failed to pick image', backgroundColor: Colors.redAccent, colorText: Colors.white);
+      Get.snackbar(
+        'Error',
+        'Failed to pick image',
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
     }
   }
 
   Future<void> submit() async {
-    if (firstNameController.text.trim().isEmpty || lastNameController.text.trim().isEmpty) {
-      Get.snackbar('Error', 'First name and Last name are required', backgroundColor: Colors.redAccent, colorText: Colors.white);
+    if (firstNameController.text.trim().isEmpty ||
+        lastNameController.text.trim().isEmpty) {
+      Get.snackbar(
+        'Error',
+        'First name and Last name are required',
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
       return;
     }
 
@@ -75,20 +86,35 @@ class EditProfileController extends GetxController {
       if (response['success'] == true) {
         // Refresh the current user inside AuthController so changes reflect app-wide
         await _authController.refreshCurrentUser();
-        
+
         // Refresh the profile data
         if (Get.isRegistered<ProfileController>()) {
           Get.find<ProfileController>().loadProfileData();
         }
 
         Get.back(); // Go back to profile view
-        Get.snackbar('Success', 'Profile updated successfully', backgroundColor: Colors.green, colorText: Colors.white);
+        Get.snackbar(
+          'Success',
+          'Profile updated successfully',
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
       } else {
-        Get.snackbar('Error', response['message'] ?? 'Failed to update profile', backgroundColor: Colors.redAccent, colorText: Colors.white);
+        Get.snackbar(
+          'Error',
+          response['message'] ?? 'Failed to update profile',
+          backgroundColor: Colors.redAccent,
+          colorText: Colors.white,
+        );
       }
     } catch (e) {
       debugPrint('EditProfileController submit error: $e');
-      Get.snackbar('Error', 'An unexpected error occurred', backgroundColor: Colors.redAccent, colorText: Colors.white);
+      Get.snackbar(
+        'Error',
+        'An unexpected error occurred',
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
     } finally {
       isSubmitting.value = false;
     }

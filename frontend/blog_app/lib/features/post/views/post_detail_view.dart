@@ -1,12 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import '../models/post_model.dart';
 import '../controller/comment_controller.dart';
+import '../../../core/theme/app_color.dart';
 
 class PostDetailView extends StatefulWidget {
   final PostModel post;
-  
-  const PostDetailView({super.key, required this.post});
+  final bool focusComment;
+
+  const PostDetailView({
+    super.key,
+    required this.post,
+    this.focusComment = false,
+  });
 
   @override
   State<PostDetailView> createState() => _PostDetailViewState();
@@ -15,16 +22,25 @@ class PostDetailView extends StatefulWidget {
 class _PostDetailViewState extends State<PostDetailView> {
   final CommentController commentController = Get.put(CommentController());
   final TextEditingController _commentInputController = TextEditingController();
+  final FocusNode _commentFocusNode = FocusNode();
+  final PageController _pageController = PageController();
 
   @override
   void initState() {
     super.initState();
     commentController.fetchComments(widget.post.id.toString());
+    if (widget.focusComment) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _commentFocusNode.requestFocus();
+      });
+    }
   }
 
   @override
   void dispose() {
+    _pageController.dispose();
     _commentInputController.dispose();
+    _commentFocusNode.dispose();
     super.dispose();
   }
 
@@ -32,12 +48,20 @@ class _PostDetailViewState extends State<PostDetailView> {
     final text = _commentInputController.text.trim();
     if (text.isEmpty) return;
 
-    final success = await commentController.addComment(widget.post.id.toString(), text);
+    final success = await commentController.addComment(
+      widget.post.id.toString(),
+      text,
+    );
     if (success) {
       _commentInputController.clear();
       FocusScope.of(context).unfocus();
     } else {
-      Get.snackbar('Error', 'Failed to add comment', backgroundColor: Colors.redAccent, colorText: Colors.white);
+      Get.snackbar(
+        'Error',
+        'Failed to add comment',
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
     }
   }
 
@@ -45,10 +69,7 @@ class _PostDetailViewState extends State<PostDetailView> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: const Text('Post Detail'),
-        elevation: 0,
-      ),
+      appBar: AppBar(title: const Text('Post Detail'), elevation: 0),
       body: Column(
         children: [
           Expanded(
@@ -58,35 +79,71 @@ class _PostDetailViewState extends State<PostDetailView> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   if (widget.post.imageUrls.isNotEmpty)
-                    SizedBox(
-                      height: 250,
-                      child: PageView.builder(
-                        itemCount: widget.post.imageUrls.length,
-                        itemBuilder: (context, index) {
-                          return Image.network(
-                            widget.post.imageUrls[index],
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Container(
-                                color: Colors.grey[300],
-                                child: const Icon(Icons.image_not_supported, size: 50, color: Colors.grey),
+                    Stack(
+                      alignment: Alignment.bottomCenter,
+                      children: [
+                        SizedBox(
+                          height: 250,
+                          child: PageView.builder(
+                            controller: _pageController,
+                            itemCount: widget.post.imageUrls.length,
+                            itemBuilder: (context, index) {
+                              return Image.network(
+                                widget.post.imageUrls[index],
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Container(
+                                    color: Colors.grey[300],
+                                    child: const Icon(
+                                      Icons.image_not_supported,
+                                      size: 50,
+                                      color: Colors.grey,
+                                    ),
+                                  );
+                                },
                               );
                             },
-                          );
-                        },
-                      ),
+                          ),
+                        ),
+                        if (widget.post.imageUrls.length > 1)
+                          Positioned(
+                            bottom: 12,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withOpacity(0.3),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: SmoothPageIndicator(
+                                controller: _pageController,
+                                count: widget.post.imageUrls.length,
+                                effect: const ExpandingDotsEffect(
+                                  dotHeight: 6,
+                                  dotWidth: 6,
+                                  activeDotColor: Colors.white,
+                                  dotColor: Colors.white54,
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                   Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-
                         if (widget.post.title != null) ...[
                           Text(
                             widget.post.title!,
-                            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                            style: const TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                           const SizedBox(height: 12),
                         ],
@@ -95,15 +152,28 @@ class _PostDetailViewState extends State<PostDetailView> {
                             children: [
                               CircleAvatar(
                                 radius: 16,
-                                backgroundImage: widget.post.author!.avatarUrl != null
-                                    ? NetworkImage(widget.post.author!.avatarUrl!)
+                                backgroundImage:
+                                    widget.post.author!.avatarUrl != null
+                                    ? NetworkImage(
+                                        widget.post.author!.avatarUrl!,
+                                      )
                                     : null,
                                 child: widget.post.author!.avatarUrl == null
-                                    ? Text(widget.post.author!.firstName.substring(0, 1).toUpperCase(), style: const TextStyle(fontSize: 12))
+                                    ? Text(
+                                        widget.post.author!.firstName
+                                            .substring(0, 1)
+                                            .toUpperCase(),
+                                        style: const TextStyle(fontSize: 12),
+                                      )
                                     : null,
                               ),
                               const SizedBox(width: 8),
-                              Text(widget.post.author!.fullName, style: const TextStyle(fontWeight: FontWeight.w600)),
+                              Text(
+                                widget.post.author!.fullName,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                             ],
                           ),
                         const SizedBox(height: 16),
@@ -115,12 +185,17 @@ class _PostDetailViewState extends State<PostDetailView> {
                         const Divider(height: 32),
                         const Text(
                           'Comments',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         const SizedBox(height: 16),
                         Obx(() {
                           if (commentController.isLoading.value) {
-                            return const Center(child: CircularProgressIndicator());
+                            return const Center(
+                              child: CircularProgressIndicator(),
+                            );
                           }
                           if (commentController.comments.isEmpty) {
                             return const Padding(
@@ -137,14 +212,26 @@ class _PostDetailViewState extends State<PostDetailView> {
                               return ListTile(
                                 leading: CircleAvatar(
                                   radius: 16,
-                                  backgroundImage: comment.user?.avatarUrl != null
+                                  backgroundImage:
+                                      comment.user?.avatarUrl != null
                                       ? NetworkImage(comment.user!.avatarUrl!)
                                       : null,
                                   child: comment.user?.avatarUrl == null
-                                      ? Text(comment.user?.firstName.substring(0, 1).toUpperCase() ?? 'U')
+                                      ? Text(
+                                          comment.user?.firstName
+                                                  .substring(0, 1)
+                                                  .toUpperCase() ??
+                                              'U',
+                                        )
                                       : null,
                                 ),
-                                title: Text(comment.user?.fullName ?? 'Unknown User', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                                title: Text(
+                                  comment.user?.fullName ?? 'Unknown User',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                  ),
+                                ),
                                 subtitle: Text(comment.content),
                                 contentPadding: EdgeInsets.zero,
                               );
@@ -178,6 +265,7 @@ class _PostDetailViewState extends State<PostDetailView> {
                   Expanded(
                     child: TextField(
                       controller: _commentInputController,
+                      focusNode: _commentFocusNode,
                       decoration: InputDecoration(
                         hintText: 'Add a comment...',
                         border: OutlineInputBorder(
@@ -186,13 +274,16 @@ class _PostDetailViewState extends State<PostDetailView> {
                         ),
                         filled: true,
                         fillColor: Colors.grey[100],
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
                       ),
                     ),
                   ),
                   const SizedBox(width: 8),
                   IconButton(
-                    icon: const Icon(Icons.send, color: Color(0xFF2E6FF2)),
+                    icon: const Icon(Icons.send, color: AppColor.primary),
                     onPressed: _submitComment,
                   ),
                 ],

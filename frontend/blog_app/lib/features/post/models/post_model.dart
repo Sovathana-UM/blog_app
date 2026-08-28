@@ -41,9 +41,13 @@ class PostModel {
       userId: json['user_id']?.toString() ?? '',
       title: json['title'],
       content: json['content'],
-      imageUrls: json['image_urls'] != null ? List<String>.from(json['image_urls']) : [],
+      imageUrls: json['image_urls'] != null
+          ? List<String>.from(json['image_urls'])
+          : [],
       createdAt: json['created_at'],
-      author: json['author'] != null ? UserModel.fromJson(json['author']) : null,
+      author: json['author'] != null
+          ? UserModel.fromJson(json['author'])
+          : null,
       commentsCount: json['comments_count'] ?? 0,
       likesCount: json['likes_count'] ?? 0,
       sharesCount: json['shares_count'] ?? 0,
@@ -51,7 +55,9 @@ class PostModel {
       isLiked: json['is_liked'] == 1 || json['is_liked'] == true,
       isSaved: json['is_saved'] == 1 || json['is_saved'] == true,
       sharedPostId: json['shared_post_id']?.toString(),
-      sharedPost: json['shared_post'] != null ? PostModel.fromJson(json['shared_post']) : null,
+      sharedPost: json['shared_post'] != null
+          ? PostModel.fromJson(json['shared_post'])
+          : null,
     );
   }
 

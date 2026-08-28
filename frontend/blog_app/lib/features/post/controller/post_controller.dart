@@ -13,7 +13,7 @@ class PostController extends GetxController {
   final titleController = TextEditingController();
   final contentController = TextEditingController();
   final RxList<File> selectedImages = <File>[].obs;
-  
+
   final isSubmitting = false.obs;
 
   @override
@@ -31,13 +31,18 @@ class PostController extends GetxController {
   Future<void> pickImages() async {
     try {
       final ImagePicker picker = ImagePicker();
-      final List<XFile> images = await picker.pickMultiImage();
+      final List<XFile> images = await picker.pickMultiImage(imageQuality: 70);
       if (images.isNotEmpty) {
         selectedImages.addAll(images.map((image) => File(image.path)));
       }
     } catch (e) {
       debugPrint('PostController pickImages error: $e');
-      Get.snackbar('Error', 'Failed to pick images', backgroundColor: Colors.redAccent, colorText: Colors.white);
+      Get.snackbar(
+        'Error',
+        'Failed to pick images',
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
     }
   }
 
@@ -53,11 +58,21 @@ class PostController extends GetxController {
 
   Future<void> submitPost() async {
     if (selectedImages.isEmpty) {
-      Get.snackbar('Error', 'Please select at least one image', backgroundColor: Colors.redAccent, colorText: Colors.white);
+      Get.snackbar(
+        'Error',
+        'Please select at least one image',
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
       return;
     }
     if (contentController.text.trim().isEmpty) {
-      Get.snackbar('Error', 'Content is required', backgroundColor: Colors.redAccent, colorText: Colors.white);
+      Get.snackbar(
+        'Error',
+        'Content is required',
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
       return;
     }
 
@@ -70,8 +85,6 @@ class PostController extends GetxController {
       );
 
       if (success) {
-        Get.snackbar('Success', 'Post created successfully', backgroundColor: Colors.green, colorText: Colors.white);
-
         // Clear form
         titleController.clear();
         contentController.clear();
@@ -81,7 +94,7 @@ class PostController extends GetxController {
         if (Get.isRegistered<HomeController>()) {
           Get.find<HomeController>().loadPosts();
         }
-        
+
         // Refresh profile posts
         if (Get.isRegistered<ProfileController>()) {
           Get.find<ProfileController>().getUserPosts();
@@ -91,12 +104,33 @@ class PostController extends GetxController {
         if (Get.isRegistered<RootController>()) {
           Get.find<RootController>().changePage(0);
         }
+
+        // Close the create post screen
+        Get.back();
+
+        // Show snackbar
+        Get.snackbar(
+          'Success',
+          'Post created successfully',
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
       } else {
-        Get.snackbar('Error', 'Failed to create post. Please try again.', backgroundColor: Colors.redAccent, colorText: Colors.white);
+        Get.snackbar(
+          'Error',
+          'Failed to create post. Please try again.',
+          backgroundColor: Colors.redAccent,
+          colorText: Colors.white,
+        );
       }
     } catch (e) {
       debugPrint('PostController submitPost error: $e');
-      Get.snackbar('Error', 'An unexpected error occurred', backgroundColor: Colors.redAccent, colorText: Colors.white);
+      Get.snackbar(
+        'Error',
+        'An unexpected error occurred',
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
     } finally {
       isSubmitting.value = false;
     }

@@ -13,7 +13,9 @@ class CommentRepository {
         debugPrint('CommentRepository getComments raw data: ${response.data}');
         final Map<String, dynamic> dataMap = response.data['data'] ?? {};
         final List<dynamic> commentsData = dataMap['comments'] ?? [];
-        debugPrint('CommentRepository getComments parsed comments length: ${commentsData.length}');
+        debugPrint(
+          'CommentRepository getComments parsed comments length: ${commentsData.length}',
+        );
         return commentsData.map((json) => CommentModel.fromJson(json)).toList();
       }
       return [];

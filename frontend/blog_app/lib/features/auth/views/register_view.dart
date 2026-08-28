@@ -89,7 +89,7 @@ class RegisterView extends GetView<AuthController> {
                     hintText: 'Create a password',
                     prefixIcon: const Icon(
                       Icons.lock_outline,
-                      color: Color(0xFF94A3B8),
+                      color: AppColor.textHint,
                     ),
                     errorText: controller.regErrors.containsKey('password')
                         ? controller.regErrors['password']
@@ -99,7 +99,7 @@ class RegisterView extends GetView<AuthController> {
                         controller.isRegPasswordObscured.value
                             ? Icons.visibility_off
                             : Icons.visibility,
-                        color: const Color(0xFF94A3B8),
+                        color: AppColor.textHint,
                       ),
                       onPressed: controller.toggleRegPasswordVisibility,
                     ),
@@ -113,7 +113,7 @@ class RegisterView extends GetView<AuthController> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFF2E6FF2)),
+                      borderSide: const BorderSide(color: AppColor.primary),
                     ),
                     errorBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -148,7 +148,7 @@ class RegisterView extends GetView<AuthController> {
                     hintText: 'Confirm your password',
                     prefixIcon: const Icon(
                       Icons.lock_outline,
-                      color: Color(0xFF94A3B8),
+                      color: AppColor.textHint,
                     ),
                     errorText:
                         controller.regErrors.containsKey(
@@ -161,7 +161,7 @@ class RegisterView extends GetView<AuthController> {
                         controller.isRegPasswordObscured.value
                             ? Icons.visibility_off
                             : Icons.visibility,
-                        color: const Color(0xFF94A3B8),
+                        color: AppColor.textHint,
                       ),
                       onPressed: controller.toggleRegPasswordVisibility,
                     ),
@@ -175,7 +175,7 @@ class RegisterView extends GetView<AuthController> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFF2E6FF2)),
+                      borderSide: const BorderSide(color: AppColor.primary),
                     ),
                     errorBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -197,7 +197,7 @@ class RegisterView extends GetView<AuthController> {
                       ? null
                       : controller.register,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2E6FF2),
+                    backgroundColor: AppColor.primary,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
@@ -258,10 +258,10 @@ class RegisterView extends GetView<AuthController> {
             decoration: InputDecoration(
               hintText: hint,
               hintStyle: const TextStyle(
-                color: Color(0xFF94A3B8),
+                color: AppColor.textHint,
                 fontSize: 14,
               ),
-              prefixIcon: Icon(icon, color: const Color(0xFF94A3B8)),
+              prefixIcon: Icon(icon, color: AppColor.textHint),
               errorText:
                   errorKey != null && controller.regErrors.containsKey(errorKey)
                   ? controller.regErrors[errorKey]
@@ -276,7 +276,7 @@ class RegisterView extends GetView<AuthController> {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Color(0xFF2E6FF2)),
+                borderSide: const BorderSide(color: AppColor.primary),
               ),
               errorBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),

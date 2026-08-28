@@ -24,7 +24,9 @@ class NotificationModel {
       id: json['id'].toString(),
       type: json['type'] ?? 'info',
       message: json['message'] ?? '',
-      sender: json['sender'] != null ? UserModel.fromJson(json['sender']) : null,
+      sender: json['sender'] != null
+          ? UserModel.fromJson(json['sender'])
+          : null,
       postId: json['post_id']?.toString(),
       isRead: json['read_at'] != null,
       createdAt: json['created_at'] ?? '',

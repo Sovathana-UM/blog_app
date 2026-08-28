@@ -1,8 +1,9 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controller/edit_profile_controller.dart';
 import '../../auth/controller/auth_controller.dart';
+
+import 'package:blog_app/core/theme/app_color.dart';
 
 class EditProfileView extends GetView<EditProfileController> {
   const EditProfileView({super.key});
@@ -17,7 +18,9 @@ class EditProfileView extends GetView<EditProfileController> {
         actions: [
           Obx(
             () => TextButton(
-              onPressed: controller.isSubmitting.value ? null : controller.submit,
+              onPressed: controller.isSubmitting.value
+                  ? null
+                  : controller.submit,
               child: controller.isSubmitting.value
                   ? const SizedBox(
                       width: 20,
@@ -26,7 +29,10 @@ class EditProfileView extends GetView<EditProfileController> {
                     )
                   : const Text(
                       'Save',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
                     ),
             ),
           ),
@@ -83,10 +89,14 @@ class EditProfileView extends GetView<EditProfileController> {
             child: Container(
               padding: const EdgeInsets.all(8),
               decoration: const BoxDecoration(
-                color: Color(0xFF2E6FF2),
+                color: AppColor.primary,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
+              child: const Icon(
+                Icons.camera_alt,
+                color: Colors.white,
+                size: 20,
+              ),
             ),
           ),
         ],
@@ -94,13 +104,21 @@ class EditProfileView extends GetView<EditProfileController> {
     );
   }
 
-  Widget _buildTextField(String label, TextEditingController textController, {int maxLines = 1}) {
+  Widget _buildTextField(
+    String label,
+    TextEditingController textController, {
+    int maxLines = 1,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Colors.black87),
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+            color: Colors.black87,
+          ),
         ),
         const SizedBox(height: 8),
         TextField(
@@ -113,7 +131,14 @@ class EditProfileView extends GetView<EditProfileController> {
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide.none,
             ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColor.primary, width: 1.5),
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 16,
+            ),
           ),
         ),
       ],

@@ -8,14 +8,19 @@ class NotificationRepository {
 
   Future<List<NotificationModel>> getNotifications({int page = 1}) async {
     try {
-      final response = await _dioClient.dio.get('/notifications', queryParameters: {'page': page});
+      final response = await _dioClient.dio.get(
+        '/notifications',
+        queryParameters: {'page': page},
+      );
       if (response.statusCode == 200 && response.data['success'] == true) {
         final List<dynamic> data = response.data['data']['notifications'] ?? [];
         return data.map((e) => NotificationModel.fromJson(e)).toList();
       }
       return [];
     } on DioException catch (e) {
-      throw Exception(e.response?.data['message'] ?? 'Failed to load notifications');
+      throw Exception(
+        e.response?.data['message'] ?? 'Failed to load notifications',
+      );
     }
   }
 
@@ -23,7 +28,9 @@ class NotificationRepository {
     try {
       debugPrint('Marking notification $id as read');
       final response = await _dioClient.dio.patch('/notifications/$id/read');
-      debugPrint('markAsRead response: ${response.statusCode} - ${response.data}');
+      debugPrint(
+        'markAsRead response: ${response.statusCode} - ${response.data}',
+      );
       return response.statusCode == 200;
     } on DioException catch (e) {
       debugPrint('markAsRead DioException: ${e.message} - ${e.response?.data}');

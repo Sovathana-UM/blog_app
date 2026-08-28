@@ -11,10 +11,12 @@ class ChangePasswordController extends GetxController {
   final confirmPasswordController = TextEditingController();
 
   final RxBool isLoading = false.obs;
-  
+
   final RxBool isCurrentPasswordVisible = false.obs;
   final RxBool isNewPasswordVisible = false.obs;
   final RxBool isConfirmPasswordVisible = false.obs;
+
+  final RxString currentPasswordError = ''.obs;
 
   @override
   void onClose() {
@@ -25,13 +27,14 @@ class ChangePasswordController extends GetxController {
   }
 
   Future<void> changePassword() async {
+    currentPasswordError.value = '';
     if (!formKey.currentState!.validate()) {
       return;
     }
 
     try {
       isLoading.value = true;
-      
+
       final response = await _authRepository.changePassword(
         currentPasswordController.text,
         newPasswordController.text,
@@ -43,27 +46,19 @@ class ChangePasswordController extends GetxController {
         Get.snackbar(
           'Success',
           response['message'] ?? 'Password changed successfully.',
-          snackPosition: SnackPosition.BOTTOM,
+          snackPosition: SnackPosition.TOP,
           backgroundColor: Colors.green,
           colorText: Colors.white,
         );
       } else {
-        Get.snackbar(
-          'Error',
-          response['message'] ?? 'Failed to change password.',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.redAccent,
-          colorText: Colors.white,
-        );
+        currentPasswordError.value =
+            response['message'] ?? 'Incorrect current password.';
+        formKey.currentState!.validate();
       }
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        'An unexpected error occurred.',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.redAccent,
-        colorText: Colors.white,
-      );
+      currentPasswordError.value =
+          'Failed to change password. Please check your current password.';
+      formKey.currentState!.validate();
     } finally {
       isLoading.value = false;
     }

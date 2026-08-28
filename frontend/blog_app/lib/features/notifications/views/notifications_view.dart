@@ -3,6 +3,10 @@ import 'package:get/get.dart';
 import '../controller/notifications_controller.dart';
 import '../../../core/utils/date_formatter.dart';
 
+import '../widgets/notification_shimmer.dart';
+
+import 'package:blog_app/core/theme/app_color.dart';
+
 class NotificationsView extends GetView<NotificationsController> {
   const NotificationsView({super.key});
 
@@ -11,15 +15,18 @@ class NotificationsView extends GetView<NotificationsController> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Notifications', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Notifications',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         centerTitle: false,
         elevation: 0,
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
       ),
       body: Obx(() {
-        if (controller.isLoading.value) {
-          return const Center(child: CircularProgressIndicator());
+        if (controller.isLoading.value && controller.notifications.isEmpty) {
+          return const NotificationShimmer();
         }
 
         if (controller.hasError.value) {
@@ -27,7 +34,11 @@ class NotificationsView extends GetView<NotificationsController> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.error_outline, size: 64, color: Colors.redAccent),
+                const Icon(
+                  Icons.error_outline,
+                  size: 64,
+                  color: Colors.redAccent,
+                ),
                 const SizedBox(height: 16),
                 const Text('Failed to load notifications'),
                 const SizedBox(height: 16),
@@ -45,19 +56,30 @@ class NotificationsView extends GetView<NotificationsController> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.notifications_off_outlined, size: 64, color: Colors.grey),
+                Icon(
+                  Icons.notifications_off_outlined,
+                  size: 64,
+                  color: Colors.grey,
+                ),
                 SizedBox(height: 16),
-                Text('No notifications yet', style: TextStyle(fontSize: 18, color: Colors.grey)),
+                Text(
+                  'No notifications yet',
+                  style: TextStyle(fontSize: 18, color: Colors.grey),
+                ),
               ],
             ),
           );
         }
 
         return RefreshIndicator(
+          key: controller.refreshIndicatorKey,
           onRefresh: () => controller.fetchNotifications(refresh: true),
           child: ListView.builder(
+            physics: const AlwaysScrollableScrollPhysics(),
             controller: controller.scrollController,
-            itemCount: controller.notifications.length + (controller.isLoadingMore.value ? 1 : 0),
+            itemCount:
+                controller.notifications.length +
+                (controller.isLoadingMore.value ? 1 : 0),
             itemBuilder: (context, index) {
               if (index == controller.notifications.length) {
                 return const Padding(
@@ -67,16 +89,24 @@ class NotificationsView extends GetView<NotificationsController> {
               }
               final notification = controller.notifications[index];
               return ListTile(
-                tileColor: notification.isRead ? Colors.white : Colors.blue.withOpacity(0.05),
+                tileColor: notification.isRead
+                    ? Colors.white
+                    : Colors.blue.withOpacity(0.05),
                 leading: CircleAvatar(
-                  backgroundColor: notification.isRead ? Colors.grey[200] : const Color(0xFF2E6FF2).withOpacity(0.2),
+                  backgroundColor: notification.isRead
+                      ? Colors.grey[200]
+                      : AppColor.primary.withOpacity(0.2),
                   backgroundImage: notification.sender?.avatarUrl != null
                       ? NetworkImage(notification.sender!.avatarUrl!)
                       : null,
                   child: notification.sender?.avatarUrl == null
                       ? Icon(
-                          notification.type == 'like' ? Icons.favorite : Icons.comment,
-                          color: notification.isRead ? Colors.grey : const Color(0xFF2E6FF2),
+                          notification.type == 'like'
+                              ? Icons.favorite
+                              : Icons.comment,
+                          color: notification.isRead
+                              ? Colors.grey
+                              : AppColor.primary,
                         )
                       : null,
                 ),
@@ -85,7 +115,9 @@ class NotificationsView extends GetView<NotificationsController> {
                       ? '${notification.sender!.firstName} ${notification.sender!.lastName}'
                       : 'Notification',
                   style: TextStyle(
-                    fontWeight: notification.isRead ? FontWeight.normal : FontWeight.bold,
+                    fontWeight: notification.isRead
+                        ? FontWeight.normal
+                        : FontWeight.bold,
                   ),
                 ),
                 subtitle: Column(
@@ -112,7 +144,7 @@ class NotificationsView extends GetView<NotificationsController> {
                         height: 10,
                         decoration: const BoxDecoration(
                           shape: BoxShape.circle,
-                          color: Color(0xFF2E6FF2),
+                          color: AppColor.primary,
                         ),
                       )
                     : null,

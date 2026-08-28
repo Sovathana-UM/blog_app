@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart';
 
 class MyPostsController extends GetxController {
   final PostRepository _postRepository = PostRepository();
-  
+
   final RxList<PostModel> posts = <PostModel>[].obs;
   final RxBool isLoading = true.obs;
   final RxBool isError = false.obs;
@@ -20,7 +20,7 @@ class MyPostsController extends GetxController {
     try {
       isLoading.value = true;
       isError.value = false;
-      
+
       final result = await _postRepository.getMyPosts();
       posts.assignAll(result);
     } catch (e) {

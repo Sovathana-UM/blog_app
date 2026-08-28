@@ -5,7 +5,7 @@ import '../repository/comment_repository.dart';
 
 class CommentController extends GetxController {
   final CommentRepository _repository = CommentRepository();
-  
+
   final textController = TextEditingController();
   final RxList<CommentModel> comments = <CommentModel>[].obs;
   final RxBool isLoading = false.obs;

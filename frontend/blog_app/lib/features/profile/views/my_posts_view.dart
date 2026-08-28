@@ -9,15 +9,12 @@ class MyPostsView extends GetView<MyPostsController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('My Posts'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('My Posts'), centerTitle: false),
       body: Obx(() {
         if (controller.isLoading.value) {
           return const Center(child: CircularProgressIndicator());
         }
-        
+
         if (controller.isError.value) {
           return Center(
             child: Column(

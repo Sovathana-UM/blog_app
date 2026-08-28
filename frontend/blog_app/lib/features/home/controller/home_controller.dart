@@ -5,7 +5,7 @@ import '../../post/repository/post_repository.dart';
 
 class HomeController extends GetxController {
   final PostRepository _postProvider = PostRepository();
-  
+
   final RxList<PostModel> posts = <PostModel>[].obs;
   final RxBool isLoading = true.obs;
   final RxBool hasError = false.obs;
@@ -15,6 +15,8 @@ class HomeController extends GetxController {
   final RxBool hasReachedMax = false.obs;
 
   final ScrollController scrollController = ScrollController();
+  final GlobalKey<RefreshIndicatorState> refreshIndicatorKey =
+      GlobalKey<RefreshIndicatorState>();
 
   @override
   void onInit() {
@@ -30,13 +32,16 @@ class HomeController extends GetxController {
   }
 
   void _onScroll() {
-    if (scrollController.position.pixels >= scrollController.position.maxScrollExtent - 200) {
+    if (scrollController.position.pixels >=
+        scrollController.position.maxScrollExtent - 200) {
       loadMorePosts();
     }
   }
 
   Future<void> loadPosts() async {
-    isLoading.value = true;
+    if (posts.isEmpty) {
+      isLoading.value = true;
+    }
     hasError.value = false;
     currentPage.value = 1;
     hasReachedMax.value = false;
@@ -76,11 +81,13 @@ class HomeController extends GetxController {
 
   Future<void> toggleLike(PostModel post) async {
     try {
-      debugPrint('HomeController: Toggling like for post ${post.id}. Current isLiked: ${post.isLiked}');
+      debugPrint(
+        'HomeController: Toggling like for post ${post.id}. Current isLiked: ${post.isLiked}',
+      );
       final success = post.isLiked
           ? await _postProvider.unlikePost(post.id)
           : await _postProvider.likePost(post.id);
-          
+
       debugPrint('HomeController: Toggle like success: $success');
       if (success) {
         final index = posts.indexWhere((p) => p.id == post.id);
@@ -95,7 +102,9 @@ class HomeController extends GetxController {
             createdAt: post.createdAt,
             author: post.author,
             commentsCount: post.commentsCount,
-            likesCount: isCurrentlyLiked ? post.likesCount - 1 : post.likesCount + 1,
+            likesCount: isCurrentlyLiked
+                ? post.likesCount - 1
+                : post.likesCount + 1,
             sharesCount: post.sharesCount,
             shareUrl: post.shareUrl,
             isLiked: !isCurrentlyLiked,
@@ -110,11 +119,13 @@ class HomeController extends GetxController {
 
   Future<void> savePost(PostModel post) async {
     try {
-      debugPrint('HomeController: Toggling save for post ${post.id}. Current isSaved: ${post.isSaved}');
+      debugPrint(
+        'HomeController: Toggling save for post ${post.id}. Current isSaved: ${post.isSaved}',
+      );
       final success = post.isSaved
           ? await _postProvider.unsavePost(post.id)
           : await _postProvider.savePost(post.id);
-          
+
       debugPrint('HomeController: Toggle save success: $success');
       if (success) {
         final index = posts.indexWhere((p) => p.id == post.id);
@@ -157,26 +168,23 @@ class HomeController extends GetxController {
           maxLines: 3,
         ),
         actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('Cancel'),
-          ),
+          TextButton(onPressed: () => Get.back(), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () async {
               Get.back(); // Close dialog
-              
+
               try {
                 // Notify backend to create repost
                 final data = await _postProvider.sharePost(
-                  post.id, 
-                  content: contentController.text.trim()
+                  post.id,
+                  content: contentController.text.trim(),
                 );
-                
+
                 if (data != null) {
                   // data is the new PostModel JSON
                   final newPost = PostModel.fromJson(data);
                   posts.insert(0, newPost);
-                  
+
                   // Update original post's share count in list
                   final index = posts.indexWhere((p) => p.id == post.id);
                   if (index != -1) {
@@ -197,7 +205,7 @@ class HomeController extends GetxController {
                       sharedPost: post.sharedPost,
                     );
                   }
-                  
+
                   Get.snackbar('Success', 'Post shared successfully!');
                 }
               } catch (e) {

@@ -28,7 +28,8 @@ class SearchView extends GetView<app_search.SearchController> {
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
-            onPressed: () => controller.searchPosts(controller.searchController.text),
+            onPressed: () =>
+                controller.searchPosts(controller.searchController.text),
           ),
         ],
         elevation: 0,
@@ -47,7 +48,10 @@ class SearchView extends GetView<app_search.SearchController> {
               children: [
                 Icon(Icons.search_off, size: 64, color: Colors.grey),
                 SizedBox(height: 16),
-                Text('No posts found', style: TextStyle(fontSize: 18, color: Colors.grey)),
+                Text(
+                  'No posts found',
+                  style: TextStyle(fontSize: 18, color: Colors.grey),
+                ),
               ],
             ),
           );
@@ -55,7 +59,10 @@ class SearchView extends GetView<app_search.SearchController> {
 
         if (!controller.hasSearched.value) {
           return const Center(
-            child: Text('Type something to search', style: TextStyle(color: Colors.grey)),
+            child: Text(
+              'Type something to search',
+              style: TextStyle(color: Colors.grey),
+            ),
           );
         }
 

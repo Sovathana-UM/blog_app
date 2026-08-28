@@ -10,11 +10,8 @@ class PostRepository {
     try {
       final queryParams = <String, dynamic>{'page': page};
       if (userId != null) queryParams['user_id'] = userId;
-      
-      final response = await _dio.get(
-        '/posts',
-        queryParameters: queryParams,
-      );
+
+      final response = await _dio.get('/posts', queryParameters: queryParams);
       if (response.data['success'] == true) {
         final List<dynamic> data = response.data['data']['posts'];
         return data.map((json) => PostModel.fromJson(json)).toList();
@@ -44,7 +41,10 @@ class PostRepository {
 
   Future<List<PostModel>> getMyPosts({int page = 1}) async {
     try {
-      final response = await _dio.get('/posts/my-posts', queryParameters: {'page': page});
+      final response = await _dio.get(
+        '/posts/my-posts',
+        queryParameters: {'page': page},
+      );
       if (response.data['success'] == true) {
         final List<dynamic> data = response.data['data']['posts'];
         return data.map((json) => PostModel.fromJson(json)).toList();
@@ -69,8 +69,6 @@ class PostRepository {
       return [];
     }
   }
-
-
 
   Future<bool> likePost(String postId) async {
     try {
@@ -120,11 +118,16 @@ class PostRepository {
     }
   }
 
-  Future<Map<String, dynamic>?> sharePost(String postId, {String? content}) async {
+  Future<Map<String, dynamic>?> sharePost(
+    String postId, {
+    String? content,
+  }) async {
     try {
       final response = await _dio.post(
         '/posts/$postId/share',
-        data: content != null && content.isNotEmpty ? {'content': content} : null,
+        data: content != null && content.isNotEmpty
+            ? {'content': content}
+            : null,
       );
       if (response.statusCode == 201 && response.data['success'] == true) {
         return response.data['data'];
@@ -153,7 +156,10 @@ class PostRepository {
           fileName = '$fileName.jpg';
         }
         formData.files.add(
-          MapEntry('images[]', await MultipartFile.fromFile(path, filename: fileName)),
+          MapEntry(
+            'images[]',
+            await MultipartFile.fromFile(path, filename: fileName),
+          ),
         );
       }
 
@@ -172,7 +178,10 @@ class PostRepository {
     }
   }
 
-  Future<bool> updatePost({required String postId, required String content}) async {
+  Future<bool> updatePost({
+    required String postId,
+    required String content,
+  }) async {
     try {
       final response = await _dio.put(
         '/posts/$postId',

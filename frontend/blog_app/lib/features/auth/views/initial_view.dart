@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controller/auth_controller.dart';
 
+import 'package:blog_app/core/theme/app_color.dart';
+
 class InitialView extends GetView<AuthController> {
   const InitialView({super.key});
 
@@ -11,11 +13,7 @@ class InitialView extends GetView<AuthController> {
     // So we just show a spinner here until it decides where to route.
     return const Scaffold(
       backgroundColor: Colors.white,
-      body: Center(
-        child: CircularProgressIndicator(
-          color: Color(0xFF2E6FF2),
-        ),
-      ),
+      body: Center(child: CircularProgressIndicator(color: AppColor.primary)),
     );
   }
 }

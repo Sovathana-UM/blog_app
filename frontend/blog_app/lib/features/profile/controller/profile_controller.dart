@@ -14,12 +14,30 @@ class ProfileController extends GetxController {
   final RxList<PostModel> userPosts = <PostModel>[].obs;
   final RxList<PostModel> savedPosts = <PostModel>[].obs;
 
+  final RxBool showSmallHeader = false.obs;
+  final ScrollController scrollController = ScrollController();
+
   UserModel? get currentUser => authController.currentUser.value;
 
   @override
   void onInit() {
     super.onInit();
     loadProfileData();
+    scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    if (scrollController.offset > 150 && !showSmallHeader.value) {
+      showSmallHeader.value = true;
+    } else if (scrollController.offset <= 150 && showSmallHeader.value) {
+      showSmallHeader.value = false;
+    }
+  }
+
+  @override
+  void onClose() {
+    scrollController.dispose();
+    super.onClose();
   }
 
   Future<void> loadProfileData() async {
@@ -29,10 +47,7 @@ class ProfileController extends GetxController {
     try {
       await authController.refreshCurrentUser();
       if (currentUser != null) {
-        await Future.wait([
-          getUserPosts(),
-          getSavedPosts(),
-        ]);
+        await Future.wait([getUserPosts(), getSavedPosts()]);
       }
     } catch (e) {
       debugPrint('ProfileController Error loading profile: $e');
@@ -67,20 +82,30 @@ class ProfileController extends GetxController {
 
   Future<void> toggleLike(PostModel post) async {
     try {
-      debugPrint('ProfileController: Toggling like for post ${post.id}. Current isLiked: ${post.isLiked}');
-      final success = post.isLiked 
+      debugPrint(
+        'ProfileController: Toggling like for post ${post.id}. Current isLiked: ${post.isLiked}',
+      );
+      final success = post.isLiked
           ? await _postProvider.unlikePost(post.id)
           : await _postProvider.likePost(post.id);
-          
+
       debugPrint('ProfileController: Toggle like success: $success');
       if (success) {
         // Update in userPosts
         _updatePostInList(userPosts, post, (p) {
-          return _copyPostWith(p, likesCount: p.isLiked ? p.likesCount - 1 : p.likesCount + 1, isLiked: !p.isLiked);
+          return _copyPostWith(
+            p,
+            likesCount: p.isLiked ? p.likesCount - 1 : p.likesCount + 1,
+            isLiked: !p.isLiked,
+          );
         });
         // Update in savedPosts
         _updatePostInList(savedPosts, post, (p) {
-          return _copyPostWith(p, likesCount: p.isLiked ? p.likesCount - 1 : p.likesCount + 1, isLiked: !p.isLiked);
+          return _copyPostWith(
+            p,
+            likesCount: p.isLiked ? p.likesCount - 1 : p.likesCount + 1,
+            isLiked: !p.isLiked,
+          );
         });
       }
     } catch (e) {
@@ -90,11 +115,13 @@ class ProfileController extends GetxController {
 
   Future<void> savePost(PostModel post) async {
     try {
-      debugPrint('ProfileController: Toggling save for post ${post.id}. Current isSaved: ${post.isSaved}');
+      debugPrint(
+        'ProfileController: Toggling save for post ${post.id}. Current isSaved: ${post.isSaved}',
+      );
       final success = post.isSaved
           ? await _postProvider.unsavePost(post.id)
           : await _postProvider.savePost(post.id);
-          
+
       debugPrint('ProfileController: Toggle save success: $success');
       if (success) {
         _updatePostInList(userPosts, post, (p) {
@@ -103,8 +130,8 @@ class ProfileController extends GetxController {
         _updatePostInList(savedPosts, post, (p) {
           return _copyPostWith(p, isSaved: !p.isSaved);
         });
-        
-        // If unsaved, maybe remove from savedPosts list? 
+
+        // If unsaved, maybe remove from savedPosts list?
         if (post.isSaved) {
           savedPosts.removeWhere((p) => p.id == post.id);
         } else {
@@ -132,31 +159,28 @@ class ProfileController extends GetxController {
           maxLines: 3,
         ),
         actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('Cancel'),
-          ),
+          TextButton(onPressed: () => Get.back(), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () async {
               Get.back(); // Close dialog
-              
+
               try {
                 final data = await _postProvider.sharePost(
-                  post.id, 
-                  content: contentController.text.trim()
+                  post.id,
+                  content: contentController.text.trim(),
                 );
-                
+
                 if (data != null) {
                   final newPost = PostModel.fromJson(data);
                   userPosts.insert(0, newPost);
-                  
+
                   _updatePostInList(userPosts, post, (p) {
                     return _copyPostWith(p, sharesCount: p.sharesCount + 1);
                   });
                   _updatePostInList(savedPosts, post, (p) {
                     return _copyPostWith(p, sharesCount: p.sharesCount + 1);
                   });
-                  
+
                   Get.snackbar('Success', 'Post shared to your profile!');
                 }
               } catch (e) {
@@ -171,14 +195,24 @@ class ProfileController extends GetxController {
     );
   }
 
-  void _updatePostInList(RxList<PostModel> list, PostModel oldPost, PostModel Function(PostModel) updater) {
+  void _updatePostInList(
+    RxList<PostModel> list,
+    PostModel oldPost,
+    PostModel Function(PostModel) updater,
+  ) {
     final index = list.indexWhere((p) => p.id == oldPost.id);
     if (index != -1) {
       list[index] = updater(list[index]);
     }
   }
 
-  PostModel _copyPostWith(PostModel p, {int? likesCount, bool? isLiked, bool? isSaved, int? sharesCount}) {
+  PostModel _copyPostWith(
+    PostModel p, {
+    int? likesCount,
+    bool? isLiked,
+    bool? isSaved,
+    int? sharesCount,
+  }) {
     return PostModel(
       id: p.id,
       userId: p.userId,

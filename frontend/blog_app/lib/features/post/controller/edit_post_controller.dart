@@ -7,7 +7,7 @@ import '../../profile/controller/profile_controller.dart';
 
 class EditPostController extends GetxController {
   final PostRepository _postProvider = PostRepository();
-  
+
   late final PostModel post;
   final contentController = TextEditingController();
   final isSubmitting = false.obs;
@@ -28,7 +28,12 @@ class EditPostController extends GetxController {
 
   Future<void> submitEdit() async {
     if (contentController.text.trim().isEmpty) {
-      Get.snackbar('Error', 'Content is required', backgroundColor: Colors.redAccent, colorText: Colors.white);
+      Get.snackbar(
+        'Error',
+        'Content is required',
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
       return;
     }
 
@@ -40,13 +45,18 @@ class EditPostController extends GetxController {
       );
 
       if (success) {
-        Get.snackbar('Success', 'Post updated successfully', backgroundColor: Colors.green, colorText: Colors.white);
+        Get.snackbar(
+          'Success',
+          'Post updated successfully',
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
 
         // Refresh home posts
         if (Get.isRegistered<HomeController>()) {
           Get.find<HomeController>().loadPosts();
         }
-        
+
         // Refresh profile posts
         if (Get.isRegistered<ProfileController>()) {
           Get.find<ProfileController>().getUserPosts();
@@ -55,11 +65,21 @@ class EditPostController extends GetxController {
         // Navigate back
         Get.back();
       } else {
-        Get.snackbar('Error', 'Failed to update post. Please try again.', backgroundColor: Colors.redAccent, colorText: Colors.white);
+        Get.snackbar(
+          'Error',
+          'Failed to update post. Please try again.',
+          backgroundColor: Colors.redAccent,
+          colorText: Colors.white,
+        );
       }
     } catch (e) {
       debugPrint('EditPostController submitEdit error: $e');
-      Get.snackbar('Error', 'An unexpected error occurred', backgroundColor: Colors.redAccent, colorText: Colors.white);
+      Get.snackbar(
+        'Error',
+        'An unexpected error occurred',
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
     } finally {
       isSubmitting.value = false;
     }

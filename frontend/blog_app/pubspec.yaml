@@ -43,6 +43,8 @@ dependencies:
   firebase_messaging: ^16.6.0
   share_plus: ^13.3.0
   flutter_local_notifications: ^22.3.0
+  smooth_page_indicator: ^3.0.0
+  shimmer: ^4.0.0
 
 dev_dependencies:
   flutter_test:

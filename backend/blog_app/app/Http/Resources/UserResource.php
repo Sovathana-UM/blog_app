@@ -39,6 +39,7 @@ class UserResource extends JsonResource
             'bio' => $this->bio,
             'location' => $this->location,
             'is_online' => $this->isOnline(),
+            'created_at' => $this->created_at,
         ];
     }
 }

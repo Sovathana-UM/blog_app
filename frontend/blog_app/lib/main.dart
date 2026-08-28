@@ -5,7 +5,6 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'core/routes/app_pages.dart';
 import 'firebase_options.dart';
 import 'core/services/local_notification_service.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/theme/app_theme.dart';
 

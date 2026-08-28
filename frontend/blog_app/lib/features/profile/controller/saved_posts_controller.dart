@@ -6,7 +6,7 @@ import 'package:flutter/foundation.dart';
 
 class SavedPostsController extends GetxController {
   final PostRepository _postRepository = PostRepository();
-  
+
   final RxList<PostModel> posts = <PostModel>[].obs;
   final RxBool isLoading = true.obs;
   final RxBool isError = false.obs;
@@ -21,7 +21,7 @@ class SavedPostsController extends GetxController {
     try {
       isLoading.value = true;
       isError.value = false;
-      
+
       final result = await _postRepository.getSavedPosts();
       posts.assignAll(result);
     } catch (e) {
@@ -38,10 +38,10 @@ class SavedPostsController extends GetxController {
 
   Future<void> toggleLike(PostModel post) async {
     try {
-      final success = post.isLiked 
+      final success = post.isLiked
           ? await _postRepository.unlikePost(post.id)
           : await _postRepository.likePost(post.id);
-          
+
       if (success) {
         final index = posts.indexWhere((p) => p.id == post.id);
         if (index != -1) {
@@ -74,7 +74,7 @@ class SavedPostsController extends GetxController {
       final success = post.isSaved
           ? await _postRepository.unsavePost(post.id)
           : await _postRepository.savePost(post.id);
-          
+
       if (success) {
         if (post.isSaved) {
           posts.removeWhere((p) => p.id == post.id);
@@ -102,17 +102,14 @@ class SavedPostsController extends GetxController {
           maxLines: 3,
         ),
         actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('Cancel'),
-          ),
+          TextButton(onPressed: () => Get.back(), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () async {
               Get.back(); // Close dialog
               try {
                 final data = await _postRepository.sharePost(
-                  post.id, 
-                  content: contentController.text.trim()
+                  post.id,
+                  content: contentController.text.trim(),
                 );
                 if (data != null) {
                   final index = posts.indexWhere((p) => p.id == post.id);
