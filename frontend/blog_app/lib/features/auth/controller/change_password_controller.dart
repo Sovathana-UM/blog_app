@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../repository/auth_repository.dart';
+import 'auth_controller.dart';
 
 class ChangePasswordController extends GetxController {
   final AuthRepository _authRepository = AuthRepository();
@@ -42,14 +43,16 @@ class ChangePasswordController extends GetxController {
       );
 
       if (response['success'] == true) {
-        Get.back();
         Get.snackbar(
           'Success',
-          response['message'] ?? 'Password changed successfully.',
+          'Password changed successfully. Please login again.',
           snackPosition: SnackPosition.TOP,
           backgroundColor: Colors.green,
           colorText: Colors.white,
         );
+        // Logout the user and redirect to login screen
+        final authController = Get.find<AuthController>();
+        authController.logout();
       } else {
         currentPasswordError.value =
             response['message'] ?? 'Incorrect current password.';

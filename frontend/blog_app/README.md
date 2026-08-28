@@ -20,7 +20,6 @@
 - [Authentication Flow](#authentication-flow)
 - [API Routes](#api-routes)
 - [Build](#build)
-- [Notes](#notes)
 
 ---
 
