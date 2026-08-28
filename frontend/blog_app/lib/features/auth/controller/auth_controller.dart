@@ -14,6 +14,7 @@ class AuthController extends GetxController {
   final loginPasswordController = TextEditingController();
   final isLoginLoading = false.obs;
   final isLoginPasswordObscured = true.obs;
+  final loginErrors = <String, String>{}.obs;
 
   // Register Observables
   final regFirstNameController = TextEditingController();
@@ -23,6 +24,7 @@ class AuthController extends GetxController {
   final regConfirmPasswordController = TextEditingController();
   final isRegLoading = false.obs;
   final isRegPasswordObscured = true.obs;
+  final regErrors = <String, String>{}.obs;
 
   final Rx<UserModel?> currentUser = Rx<UserModel?>(null);
 
@@ -72,7 +74,7 @@ class AuthController extends GetxController {
     try {
       FirebaseMessaging messaging = FirebaseMessaging.instance;
       NotificationSettings settings = await messaging.requestPermission();
-      
+
       if (settings.authorizationStatus == AuthorizationStatus.authorized) {
         String? token = await messaging.getToken();
         if (token != null) {
@@ -101,16 +103,15 @@ class AuthController extends GetxController {
     debugPrint('AuthController: login() called.');
     if (loginEmailController.text.isEmpty ||
         loginPasswordController.text.isEmpty) {
-      debugPrint('AuthController: Validation failed. Empty fields.');
-      Get.snackbar(
-        'Error',
-        'Please fill in all fields',
-        backgroundColor: Colors.redAccent,
-        colorText: Colors.white,
-      );
+      loginErrors.clear();
+      if (loginEmailController.text.isEmpty)
+        loginErrors['email'] = 'Email is required';
+      if (loginPasswordController.text.isEmpty)
+        loginErrors['password'] = 'Password is required';
       return;
     }
 
+    loginErrors.clear();
     isLoginLoading.value = true;
     try {
       final response = await _authProvider.login(
@@ -122,13 +123,7 @@ class AuthController extends GetxController {
         // Save Token
         final token = response['data']['token'];
         if (token == null) {
-          debugPrint('AuthController: ERROR - Token is null in response!');
-          Get.snackbar(
-            'Error',
-            'Server did not return a token',
-            backgroundColor: Colors.redAccent,
-            colorText: Colors.white,
-          );
+          loginErrors['general'] = 'Server did not return a token';
           return;
         }
         final prefs = await SharedPreferences.getInstance();
@@ -138,32 +133,24 @@ class AuthController extends GetxController {
         currentUser.value = await _authProvider.getCurrentUser();
         await setupPushNotifications();
 
-        Get.snackbar(
-          'Success',
-          'Welcome Back!',
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-        );
         Get.offAllNamed(Routes.ROOT);
       } else {
         debugPrint(
           'AuthController: Login failed from API: ${response['message']}',
         );
-        Get.snackbar(
-          'Error',
-          response['message'] ?? 'Login failed',
-          backgroundColor: Colors.redAccent,
-          colorText: Colors.white,
-        );
+        if (response['errors'] != null) {
+          final errors = response['errors'] as Map<String, dynamic>;
+          errors.forEach((key, value) {
+            if (value is List && value.isNotEmpty) {
+              loginErrors[key] = value[0].toString();
+            }
+          });
+        } else {
+          loginErrors['email'] = response['message'] ?? 'Login failed';
+        }
       }
     } catch (e) {
-      debugPrint('AuthController: Caught exception in login: $e');
-      Get.snackbar(
-        'Error',
-        e.toString(),
-        backgroundColor: Colors.redAccent,
-        colorText: Colors.white,
-      );
+      loginErrors['general'] = e.toString();
     } finally {
       isLoginLoading.value = false;
     }
@@ -172,29 +159,29 @@ class AuthController extends GetxController {
   Future<void> register() async {
     debugPrint('AuthController: register() called.');
     if (regFirstNameController.text.isEmpty ||
+        regLastNameController.text.isEmpty ||
         regEmailController.text.isEmpty ||
         regPasswordController.text.isEmpty) {
-      debugPrint('AuthController: Validation failed. Empty fields.');
-      Get.snackbar(
-        'Error',
-        'Please fill in all required fields',
-        backgroundColor: Colors.redAccent,
-        colorText: Colors.white,
-      );
+      regErrors.clear();
+      if (regFirstNameController.text.isEmpty)
+        regErrors['first_name'] = 'First name is required';
+      if (regLastNameController.text.isEmpty)
+        regErrors['last_name'] = 'Last name is required';
+      if (regEmailController.text.isEmpty)
+        regErrors['email'] = 'Email is required';
+      if (regPasswordController.text.isEmpty)
+        regErrors['password'] = 'Password is required';
       return;
     }
 
     if (regPasswordController.text != regConfirmPasswordController.text) {
       debugPrint('AuthController: Validation failed. Passwords do not match.');
-      Get.snackbar(
-        'Error',
-        'Passwords do not match',
-        backgroundColor: Colors.redAccent,
-        colorText: Colors.white,
-      );
+      regErrors.clear();
+      regErrors['password_confirmation'] = 'Passwords do not match';
       return;
     }
 
+    regErrors.clear();
     isRegLoading.value = true;
     try {
       final response = await _authProvider.register(
@@ -213,12 +200,7 @@ class AuthController extends GetxController {
         final token = response['data']['token'];
         if (token == null) {
           debugPrint('AuthController: ERROR - Token is null in response!');
-          Get.snackbar(
-            'Error',
-            'Server did not return a token',
-            backgroundColor: Colors.redAccent,
-            colorText: Colors.white,
-          );
+          regErrors['general'] = 'Server did not return a token';
           return;
         }
         final prefs = await SharedPreferences.getInstance();
@@ -228,32 +210,25 @@ class AuthController extends GetxController {
         currentUser.value = await _authProvider.getCurrentUser();
         await setupPushNotifications();
 
-        Get.snackbar(
-          'Success',
-          'Account created successfully!',
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-        );
         Get.offAllNamed(Routes.ROOT);
       } else {
         debugPrint(
           'AuthController: Registration failed from API: ${response['message']}',
         );
-        Get.snackbar(
-          'Error',
-          response['message'] ?? 'Registration failed',
-          backgroundColor: Colors.redAccent,
-          colorText: Colors.white,
-        );
+        if (response['errors'] != null) {
+          final errors = response['errors'] as Map<String, dynamic>;
+          errors.forEach((key, value) {
+            if (value is List && value.isNotEmpty) {
+              regErrors[key] = value[0].toString();
+            }
+          });
+        } else {
+          regErrors['email'] = response['message'] ?? 'Registration failed';
+        }
       }
     } catch (e) {
       debugPrint('AuthController: Caught exception in register: $e');
-      Get.snackbar(
-        'Error',
-        'Something went wrong',
-        backgroundColor: Colors.redAccent,
-        colorText: Colors.white,
-      );
+      regErrors['general'] = 'Something went wrong';
     } finally {
       isRegLoading.value = false;
     }
@@ -304,9 +279,17 @@ class AuthController extends GetxController {
     }
   }
 
-  Future<bool> changePassword(String current, String newPass, String confirmPass) async {
+  Future<bool> changePassword(
+    String current,
+    String newPass,
+    String confirmPass,
+  ) async {
     try {
-      final res = await _authProvider.changePassword(current, newPass, confirmPass);
+      final res = await _authProvider.changePassword(
+        current,
+        newPass,
+        confirmPass,
+      );
       return res['success'] == true;
     } catch (e) {
       debugPrint('Change password error: $e');

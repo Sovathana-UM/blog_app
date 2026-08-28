@@ -1,7 +1,7 @@
 import '../../auth/models/user_model.dart';
 
 class NotificationModel {
-  final int id;
+  final String id;
   final String type;
   final String message;
   final UserModel? sender;
@@ -21,7 +21,7 @@ class NotificationModel {
 
   factory NotificationModel.fromJson(Map<String, dynamic> json) {
     return NotificationModel(
-      id: json['id'] is int ? json['id'] : int.tryParse(json['id'].toString()) ?? 0,
+      id: json['id'].toString(),
       type: json['type'] ?? 'info',
       message: json['message'] ?? '',
       sender: json['sender'] != null ? UserModel.fromJson(json['sender']) : null,

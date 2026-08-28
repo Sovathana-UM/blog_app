@@ -21,8 +21,15 @@ class SavedPostController extends Controller
         $user = $request->user();
         
         $posts = $user->savedPosts()
-                      ->with(['user:id,first_name,last_name,profile_picture'])
+                      ->with([
+                          'user:id,first_name,last_name,profile_picture',
+                          'sharedPost.user:id,first_name,last_name,profile_picture',
+                      ])
                       ->withCount(['comments', 'likes'])
+                      ->withExists([
+                          'likes as is_liked' => fn ($q) => $q->where('user_id', $user->id),
+                          'savedByUsers as is_saved' => fn ($q) => $q->where('saved_posts.user_id', $user->id),
+                      ])
                       ->latest('saved_posts.created_at')
                       ->paginate(10);
                       

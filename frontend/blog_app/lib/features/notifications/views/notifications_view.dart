@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controller/notifications_controller.dart';
+import '../../../core/utils/date_formatter.dart';
 
 class NotificationsView extends GetView<NotificationsController> {
   const NotificationsView({super.key});
@@ -94,7 +95,7 @@ class NotificationsView extends GetView<NotificationsController> {
                     Text(notification.message),
                     const SizedBox(height: 4),
                     Text(
-                      _formatDate(notification.createdAt),
+                      DateFormatter.timeAgo(notification.createdAt),
                       style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                     ),
                   ],
@@ -121,18 +122,5 @@ class NotificationsView extends GetView<NotificationsController> {
         );
       }),
     );
-  }
-
-  String _formatDate(String dateStr) {
-    try {
-      final DateTime date = DateTime.parse(dateStr);
-      final duration = DateTime.now().difference(date);
-      if (duration.inDays > 0) return '${duration.inDays} days ago';
-      if (duration.inHours > 0) return '${duration.inHours} hours ago';
-      if (duration.inMinutes > 0) return '${duration.inMinutes} minutes ago';
-      return 'Just now';
-    } catch (_) {
-      return dateStr;
-    }
   }
 }

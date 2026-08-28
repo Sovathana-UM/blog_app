@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../features/auth/models/user_model.dart';
+import '../../../core/utils/date_formatter.dart';
 
 class ProfileHeader extends StatelessWidget {
   final UserModel user;
@@ -108,10 +109,10 @@ class ProfileHeader extends StatelessWidget {
                 ),
 
               if (user.dateOfBirth != null && user.dateOfBirth!.isNotEmpty)
-                _buildInfoChip(Icons.cake_outlined, _formatDate(user.dateOfBirth)),
+                _buildInfoChip(Icons.cake_outlined, DateFormatter.formatDate(user.dateOfBirth)),
 
               if (user.createdAt != null && user.createdAt!.isNotEmpty)
-                _buildInfoChip(Icons.calendar_today_outlined, 'Joined ${_formatDate(user.createdAt)}'),
+                _buildInfoChip(Icons.calendar_today_outlined, 'Joined ${DateFormatter.formatDate(user.createdAt)}'),
             ],
           )
         ],
@@ -131,16 +132,5 @@ class ProfileHeader extends StatelessWidget {
         ),
       ],
     );
-  }
-
-  String _formatDate(String? dateStr) {
-    if (dateStr == null || dateStr.isEmpty) return 'Unknown';
-    try {
-      final DateTime date = DateTime.parse(dateStr);
-      final monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      return '${monthNames[date.month - 1]} ${date.year}';
-    } catch (_) {
-      return dateStr;
-    }
   }
 }

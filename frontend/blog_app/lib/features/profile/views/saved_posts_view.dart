@@ -51,9 +51,9 @@ class SavedPostsView extends GetView<SavedPostsController> {
             itemBuilder: (context, index) {
               return PostCard(
                 post: controller.posts[index],
-                onLike: () {},
-                onSave: () {},
-                onShare: () {},
+                onLike: () => controller.toggleLike(controller.posts[index]),
+                onSave: () => controller.savePost(controller.posts[index]),
+                onShare: () => controller.sharePost(controller.posts[index]),
               );
             },
           ),

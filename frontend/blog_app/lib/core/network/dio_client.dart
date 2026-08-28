@@ -13,7 +13,7 @@ class DioClient {
 
   DioClient._internal() {
     // Using local IP address for physical device testing
-    String baseUrl = 'http://10.203.69.33:8000/api';
+    String baseUrl = 'http://192.168.9.97:8000/api';
     dio = Dio(
       BaseOptions(
         baseUrl: baseUrl,

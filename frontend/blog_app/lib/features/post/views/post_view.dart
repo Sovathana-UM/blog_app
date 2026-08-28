@@ -49,6 +49,19 @@ class PostView extends GetView<PostController> {
           children: [
             // Title Input
             TextField(
+              controller: controller.titleController,
+              decoration: const InputDecoration(
+                hintText: "Enter title (optional)",
+                hintStyle: TextStyle(color: Colors.grey, fontSize: 20, fontWeight: FontWeight.bold),
+                border: InputBorder.none,
+              ),
+              maxLines: 1,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const Divider(),
+            
+            // Content Input
+            TextField(
               controller: controller.contentController,
               decoration: const InputDecoration(
                 hintText: "What's on your mind?",

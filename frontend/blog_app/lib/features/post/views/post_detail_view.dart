@@ -43,8 +43,6 @@ class _PostDetailViewState extends State<PostDetailView> {
 
   @override
   Widget build(BuildContext context) {
-    final String? imageUrl = widget.post.imageUrls.isNotEmpty ? widget.post.imageUrls.first : null;
-
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -59,19 +57,25 @@ class _PostDetailViewState extends State<PostDetailView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (imageUrl != null)
-                    Image.network(
-                      imageUrl,
-                      width: double.infinity,
+                  if (widget.post.imageUrls.isNotEmpty)
+                    SizedBox(
                       height: 250,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          height: 250,
-                          color: Colors.grey[300],
-                          child: const Icon(Icons.image_not_supported, size: 50, color: Colors.grey),
-                        );
-                      },
+                      child: PageView.builder(
+                        itemCount: widget.post.imageUrls.length,
+                        itemBuilder: (context, index) {
+                          return Image.network(
+                            widget.post.imageUrls[index],
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                color: Colors.grey[300],
+                                child: const Icon(Icons.image_not_supported, size: 50, color: Colors.grey),
+                              );
+                            },
+                          );
+                        },
+                      ),
                     ),
                   Padding(
                     padding: const EdgeInsets.all(16.0),

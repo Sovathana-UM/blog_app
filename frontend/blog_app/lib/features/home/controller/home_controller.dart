@@ -10,23 +10,67 @@ class HomeController extends GetxController {
   final RxBool isLoading = true.obs;
   final RxBool hasError = false.obs;
 
+  final RxInt currentPage = 1.obs;
+  final RxBool isLoadingMore = false.obs;
+  final RxBool hasReachedMax = false.obs;
+
+  final ScrollController scrollController = ScrollController();
+
   @override
   void onInit() {
     super.onInit();
+    scrollController.addListener(_onScroll);
     loadPosts();
+  }
+
+  @override
+  void onClose() {
+    scrollController.dispose();
+    super.onClose();
+  }
+
+  void _onScroll() {
+    if (scrollController.position.pixels >= scrollController.position.maxScrollExtent - 200) {
+      loadMorePosts();
+    }
   }
 
   Future<void> loadPosts() async {
     isLoading.value = true;
     hasError.value = false;
+    currentPage.value = 1;
+    hasReachedMax.value = false;
     try {
-      final data = await _postProvider.getPosts();
+      final data = await _postProvider.getPosts(page: currentPage.value);
       posts.assignAll(data);
+      if (data.isEmpty) {
+        hasReachedMax.value = true;
+      }
     } catch (e) {
       debugPrint('HomeController Error loading posts: $e');
       hasError.value = true;
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  Future<void> loadMorePosts() async {
+    if (isLoadingMore.value || hasReachedMax.value || isLoading.value) return;
+
+    isLoadingMore.value = true;
+    try {
+      currentPage.value++;
+      final data = await _postProvider.getPosts(page: currentPage.value);
+      if (data.isEmpty) {
+        hasReachedMax.value = true;
+      } else {
+        posts.addAll(data);
+      }
+    } catch (e) {
+      debugPrint('HomeController Error loading more posts: $e');
+      currentPage.value--;
+    } finally {
+      isLoadingMore.value = false;
     }
   }
 
@@ -39,7 +83,7 @@ class HomeController extends GetxController {
           
       debugPrint('HomeController: Toggle like success: $success');
       if (success) {
-        final index = posts.indexOf(post);
+        final index = posts.indexWhere((p) => p.id == post.id);
         if (index != -1) {
           final isCurrentlyLiked = post.isLiked;
           posts[index] = PostModel(
@@ -73,7 +117,7 @@ class HomeController extends GetxController {
           
       debugPrint('HomeController: Toggle save success: $success');
       if (success) {
-        final index = posts.indexOf(post);
+        final index = posts.indexWhere((p) => p.id == post.id);
         if (index != -1) {
           final isCurrentlySaved = post.isSaved;
           posts[index] = PostModel(

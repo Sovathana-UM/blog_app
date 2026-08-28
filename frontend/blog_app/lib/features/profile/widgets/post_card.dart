@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../features/post/models/post_model.dart';
 import '../../../features/post/views/post_detail_view.dart';
+import '../../../features/post/widgets/comment_bottom_sheet.dart';
+import '../../../core/utils/date_formatter.dart';
 import '../../../features/auth/controller/auth_controller.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../features/post/repository/post_repository.dart';
@@ -70,7 +72,7 @@ class PostCard extends StatelessWidget {
                   ],
                 ),
                 title: Text(post.author!.fullName, style: const TextStyle(fontWeight: FontWeight.bold)),
-                subtitle: Text(_formatDate(post.createdAt), style: const TextStyle(fontSize: 12)),
+                subtitle: Text(DateFormatter.timeAgo(post.createdAt), style: const TextStyle(fontSize: 12)),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -200,12 +202,20 @@ class PostCard extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: 16),
-                          Row(
-                            children: [
-                              Icon(Icons.comment_outlined, size: 20, color: Colors.grey[600]),
-                              const SizedBox(width: 4),
-                              Text('${post.commentsCount}', style: TextStyle(color: Colors.grey[600])),
-                            ],
+                          InkWell(
+                            onTap: () {
+                              Get.bottomSheet(
+                                CommentBottomSheet(postId: post.id.toString()),
+                                isScrollControlled: true,
+                              );
+                            },
+                            child: Row(
+                              children: [
+                                Icon(Icons.comment_outlined, size: 20, color: Colors.grey[600]),
+                                const SizedBox(width: 4),
+                                Text('${post.commentsCount}', style: TextStyle(color: Colors.grey[600])),
+                              ],
+                            ),
                           ),
                           const SizedBox(width: 16),
                           InkWell(
@@ -231,15 +241,7 @@ class PostCard extends StatelessWidget {
     );
   }
 
-  String _formatDate(String? dateStr) {
-    if (dateStr == null) return 'Unknown date';
-    try {
-      final DateTime date = DateTime.parse(dateStr);
-      return '${date.day}/${date.month}/${date.year}';
-    } catch (_) {
-      return 'Recent';
-    }
-  }
+
 
   Widget _buildEmbeddedPost(PostModel sharedPost) {
     return Container(
@@ -263,7 +265,7 @@ class PostCard extends StatelessWidget {
                     : null,
               ),
               title: Text(sharedPost.author!.fullName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-              subtitle: Text(_formatDate(sharedPost.createdAt), style: const TextStyle(fontSize: 12)),
+              subtitle: Text(DateFormatter.timeAgo(sharedPost.createdAt), style: const TextStyle(fontSize: 12)),
               dense: true,
             ),
           

@@ -6,11 +6,14 @@ import '../../../core/network/dio_client.dart';
 class PostRepository {
   final Dio _dio = DioClient().dio;
 
-  Future<List<PostModel>> getPosts({String? userId}) async {
+  Future<List<PostModel>> getPosts({String? userId, int page = 1}) async {
     try {
+      final queryParams = <String, dynamic>{'page': page};
+      if (userId != null) queryParams['user_id'] = userId;
+      
       final response = await _dio.get(
         '/posts',
-        queryParameters: userId != null ? {'user_id': userId} : null,
+        queryParameters: queryParams,
       );
       if (response.data['success'] == true) {
         final List<dynamic> data = response.data['data']['posts'];

@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../controller/home_controller.dart';
 import '../../profile/widgets/post_card.dart';
 import '../../search/views/search_view.dart';
+import '../../auth/controller/auth_controller.dart';
 
 class HomeView extends GetView<HomeController> {
   const HomeView({super.key});
@@ -12,7 +13,23 @@ class HomeView extends GetView<HomeController> {
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        title: const Text('Blogify', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Obx(() {
+          final authController = Get.find<AuthController>();
+          final firstName = authController.currentUser.value?.firstName ?? 'User';
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Hello $firstName',
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+              ),
+              const Text(
+                'Discover and read amazing posts',
+                style: TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+            ],
+          );
+        }),
         centerTitle: false,
         elevation: 0,
         backgroundColor: Colors.white,
@@ -52,9 +69,16 @@ class HomeView extends GetView<HomeController> {
         return RefreshIndicator(
           onRefresh: controller.loadPosts,
           child: ListView.builder(
+            controller: controller.scrollController,
             padding: const EdgeInsets.only(top: 8, bottom: 80),
-            itemCount: controller.posts.length,
+            itemCount: controller.posts.length + (controller.isLoadingMore.value ? 1 : 0),
             itemBuilder: (context, index) {
+              if (index == controller.posts.length) {
+                return const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 16.0),
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
               final post = controller.posts[index];
               return PostCard(
                 post: post,

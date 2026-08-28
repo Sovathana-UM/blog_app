@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../core/routes/app_routes.dart';
-import '../../../core/services/theme_service.dart';
-
+import '../../../core/routes/app_routes.dart';
 class ProfileMenu extends StatelessWidget {
   final VoidCallback onLogout;
 
@@ -24,16 +23,7 @@ class ProfileMenu extends StatelessWidget {
         _buildMenuItem(Icons.lock_outline, 'Change Password', onTap: () {
           Get.toNamed(Routes.CHANGE_PASSWORD);
         }),
-        Obx(() {
-          final isDark = Get.find<ThemeService>().isDarkModeRx.value;
-          return _buildMenuItem(
-            isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
-            isDark ? 'Light Mode' : 'Dark Mode',
-            onTap: () {
-              Get.find<ThemeService>().toggleTheme();
-            },
-          );
-        }),
+
         const Divider(),
         ListTile(
           leading: const Icon(Icons.logout, color: Colors.redAccent),

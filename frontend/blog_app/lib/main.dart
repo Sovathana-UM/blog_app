@@ -6,7 +6,7 @@ import 'core/routes/app_pages.dart';
 import 'firebase_options.dart';
 import 'core/services/local_notification_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'core/services/theme_service.dart';
+
 import 'core/theme/app_theme.dart';
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -25,18 +25,13 @@ void main() async {
     debugPrint("Firebase init error: $e");
   }
 
-  final prefs = await SharedPreferences.getInstance();
-  Get.put(ThemeService(prefs));
-
   runApp(
     GetMaterialApp(
-      title: "Blogify",
+      title: "Blog App",
       initialRoute: AppPages.INITIAL,
       getPages: AppPages.routes,
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: Get.find<ThemeService>().theme,
+      theme: AppTheme.theme,
     ),
   );
 }

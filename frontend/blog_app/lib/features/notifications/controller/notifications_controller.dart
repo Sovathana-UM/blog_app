@@ -79,9 +79,12 @@ class NotificationsController extends GetxController {
   Future<void> markAsRead(NotificationModel notification) async {
     if (notification.isRead) return;
     try {
+      debugPrint('Controller: Marking as read for id: ${notification.id}');
       final success = await _repository.markAsRead(notification.id.toString());
+      debugPrint('Controller: markAsRead success: $success');
       if (success) {
-        final index = notifications.indexOf(notification);
+        final index = notifications.indexWhere((n) => n.id == notification.id);
+        debugPrint('Controller: found index: $index');
         if (index != -1) {
           notifications[index] = NotificationModel(
             id: notification.id,
@@ -92,6 +95,7 @@ class NotificationsController extends GetxController {
             isRead: true,
             createdAt: notification.createdAt,
           );
+          notifications.refresh();
           
           if (Get.isRegistered<RootController>()) {
             final rootCtrl = Get.find<RootController>();
